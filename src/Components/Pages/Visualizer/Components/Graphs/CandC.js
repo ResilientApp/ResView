@@ -1,21 +1,10 @@
-
-import { ResponsiveLine } from "@nivo/line";
-import { ccData } from "../data/data";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Loader from "../../../../Shared/Loader";
 import { GraphViewContext } from "../../../../../Context/graph";
+import { WebSocketDemo } from '../../../../../Socket';
+import { Line } from 'react-chartjs-2';
+import { Chart } from 'chart.js/auto';
 
-const theme = {
-  axis: {
-    textColor: "#fff",
-    fontSize: "140px",
-    tickColor: "#eee",
-  },
-  grid: {
-    stroke: "#fff",
-    strokeWidth: 1,
-  },
-};
 
 const secondTheme = {
   textColor: "#fff",
@@ -23,88 +12,107 @@ const secondTheme = {
 };
 
 const CandC = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const { cAndCGraphNumber } = useContext(GraphViewContext);
+  const [isLoading, setIsLoading] = useState(false);
+  const { cAndCGraphNumber } = useContext(GraphViewContext);
+  const [graphData, setGraphData] = useState({ labels: [], datasets: [] });
+  const replicaLabels = [];
 
-    // TODO:This the above and below code is just to showcase the loading as a dummy state. Will be changed later.
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setIsLoading(false);
-  //   }, 2000);
-  //   return () => clearTimeout(timer);
-  // }, []);
+  const onMessage = (newData) => {
+    let updatedGraphData = { labels: [], datasets: [] };
+
+    Object.entries(newData.current).forEach(([entryKey, entryValue]) => {
+      console.log(`line 23: ${entryKey}`);
+      Object.entries(entryValue).forEach(([replicaKey, replicaValue]) => {
+        console.log(`line 25: ${replicaKey}`);
+        const timestamps = replicaValue.prepare_message_timestamps;
+        const min_timestamp = Math.min(...timestamps);
+        if (!replicaLabels.includes(`Replica ${replicaValue.replica_id}`)) {
+          replicaLabels.push(`Replica ${replicaValue.replica_id}`);
+        }
+        const data = timestamps.map((timestamp, messageIndex) => ({
+          x: replicaValue.propose_pre_prepare_time - min_timestamp,
+          y: replicaKey
+        }));
+        // const data = {
+        //   x: replicaValue.propose_pre_prepare_time - min_timestamp,
+        //   y: replicaKey
+        // };
+        console.log(data);
+
+        // updatedGraphData.labels = timestamps.map((timestamp) => min_timestamp - Math.min(...replicaValue.prepare_message_timestamps));
+        updatedGraphData.datasets.push({
+          // label: `Replica ${replicaValue.replica_id}`,
+          fill: false,
+          lineTension: 0.1,
+          backgroundColor: "rgba(75,192,192,0.4)",
+          borderColor: "rgba(75,192,192,1)",
+          borderCapStyle: "butt",
+          borderDash: [],
+          borderDashOffset: 0.0,
+          borderJoinStyle: "miter",
+          pointBorderColor: "rgba(75,192,192,1)",
+          pointBackgroundColor: "#fff",
+          pointBorderWidth: 1,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(75,192,192,1)",
+          pointHoverBorderColor: "rgba(220,220,220,1)",
+          pointHoverBorderWidth: 2,
+          pointRadius: 1,
+          pointHitRadius: 10,
+          data: data,
+        });
+      });
+    });
+
+    setGraphData(updatedGraphData);
+  };
+
+  useEffect(() => {
+    // This code block will run after the component has rendered with the updated graphData
+    console.log("Graph Data after rendering:", graphData);
+
+    // You can add additional log statements or perform other side effects here
+  }, [graphData]);
 
   return (
     <>
-        {isLoading ? (
-            <Loader />
-        ) : (
-            <ResponsiveLine
-    data={ccData}
-    margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-    xScale={{ type: "point" }}
-    yScale={{
-      type: "linear",
-      min: "auto",
-      max: "auto",
-      stacked: true,
-      reverse: false,
-    }}
-    yFormat=' >-.2f'
-    axisTop={null}
-    axisRight={null}
-    axisBottom={{
-      tickSize: 5,
-      tickPadding: 5,
-      tickRotation: 0,
-      legend: "Prepare Time",
-      legendOffset: 36,
-      legendPosition: "middle",
-      fontColor: '#fff'
-    }}
-    axisLeft={{
-      tickSize: 5,
-      tickPadding: 5,
-      tickRotation: 0,
-      legend: "Number of Messages",
-      legendOffset: -40,
-      legendPosition: "middle",
-    }}
-    enablePoints={false}
-    pointSize={10}
-    pointColor={{ theme: "background" }}
-    pointBorderWidth={2}
-    pointBorderColor={{ from: "serieColor" }}
-    pointLabelYOffset={-12}
-    useMesh={true}
-    legends={[
-      {
-        anchor: "bottom-right",
-        direction: "column",
-        justify: false,
-        translateX: 100,
-        translateY: 0,
-        itemsSpacing: 0,
-        itemDirection: "left-to-right",
-        itemWidth: 80,
-        itemHeight: 20,
-        itemOpacity: 0.75,
-        symbolSize: 12,
-        symbolShape: "circle",
-        symbolBorderColor: "rgba(0, 0, 0, .5)",
-        effects: [
-          {
-            on: "hover",
-            style: {
-              itemBackground: "rgba(0, 0, 0, .03)",
-              itemOpacity: 1,
+      <WebSocketDemo onMessage={onMessage} />
+      {console.log(`hello : ${graphData}`)}
+      {Object.entries(graphData).forEach(([entryKey, entryValue]) => {
+        Object.entries(entryValue).forEach(([k, v]) => {
+          console.log(`g key: '${k}', g value: ${v}`);
+        })
+      })}
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <Line
+          data={graphData}
+          options={{
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: {
+                  display: true,
+                  text: 'Prepare Time',
+                  color: '#fff',
+                },
+              },
+              y: {
+                type: 'linear',
+                position: 'left',
+                title: {
+                  display: true,
+                  text: 'Number of Messages',
+                  color: '#fff',
+                  labels: replicaLabels,
+                },
+              },
             },
-          },
-        ],
-      },
-    ]}
-  />
-        )}
+          }}
+        />
+      )}
     </>
   );
 };

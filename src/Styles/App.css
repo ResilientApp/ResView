@@ -550,6 +550,9 @@ video {
 .mt-\[4em\] {
   margin-top: 4em;
 }
+.block {
+  display: block;
+}
 .flex {
   display: flex;
 }
@@ -571,11 +574,9 @@ video {
 .h-5p {
   height: 5px;
 }
-
 .h-720p {
   height: 720px;
 }
-
 .h-full {
   height: 100%;
 }
