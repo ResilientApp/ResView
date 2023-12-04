@@ -9,6 +9,7 @@ import Dropdown from "./Components/Ancillary/Dropdown";
 import TypeSelector from "./Components/Ancillary/TypeSelector";
 import CandC from "./Components/Graphs/CandC";
 import TestingGraph from "./Components/Graphs/TestingGraphs";
+import PbftGraph from "./Components/Graphs/PbftGraph";
 
 // TODO: Remove the below Unknown dummy component once the other graphs are built and remove it from GRAPH_CHANGE object
 const Dummy = () => {
@@ -37,8 +38,8 @@ const Visualizer = () => {
 
   const GRAPH_CHANGE = useMemo(
     () => ({
-      // PBFT: <PbftGraph />,
-      PBFT: <TestingGraph />,
+      PBFT: <PbftGraph />,
+      // PBFT: <TestingGraph />,
       MvT: <CandC />,
       "?": <Dummy />,
     }),

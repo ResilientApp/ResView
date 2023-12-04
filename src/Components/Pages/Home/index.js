@@ -5,6 +5,7 @@ import { WebSocketDemo } from '../../../Socket'
 import homePageBackground from '../../../Resources/Images/homePageBackground.png'
 import { Icon } from '../../Shared/Icon';
 import { anglesDownIcon } from '../../../Resources/Icons';
+import { sendGet, sendPost } from '../../../API';
 
 const ScrollBelow = () => {
   return (
