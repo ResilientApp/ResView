@@ -4,13 +4,13 @@ import { Tooltip } from "@mui/material";
 import { GraphViewContext } from "../../../../../Context/graph";
 
 // TODO: Change the arrow below once the name of the third graph is known
-const buttonRow = ["PBFT", "MvT", "?"];
+const buttonRow = ["Form", "PBFT", "MvT"];
 
 // TODO: Fill the below ? with appropriate title and its full form
 const abbreviationToFullform = {
   PBFT: "Practical Byzantine Fault Tolerance Graph",
   MvT: "Message vs Time Graph",
-  "?": "",
+  "Form": "",
 };
 
 const Button = ({ title }) => {

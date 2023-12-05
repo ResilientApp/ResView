@@ -5,10 +5,12 @@ import { anglesRightIcon } from "../../../Resources/Icons";
 import { Icon } from "../../Shared/Icon";
 import Wrapper from "../../Shared/Wrapper";
 import ButtonRow from "./Components/Ancillary/Buttons";
+import GraphButtonRow from "./Components/Ancillary/GraphButtons";
 import Dropdown from "./Components/Ancillary/Dropdown";
 import TypeSelector from "./Components/Ancillary/TypeSelector";
 import CandC from "./Components/Graphs/CandC";
 import TestingGraph from "./Components/Graphs/TestingGraphs";
+import TransactionForm from "./Components/Graphs/Form";
 import axios from 'axios';
 import { WebSocketDemo } from '../../../Socket'
 
@@ -35,13 +37,35 @@ const Visualizer = () => {
   const [currentTransaction, setCurrentTransaction] = useState(0);
   const [messageChartData, setMessageChartData] = useState([]);
   const [labelToggle, setLabelToggle] = useState({"Replica 1":true, "Replica 2":true, "Replica 3":true, "Replica 4":true});
+  const [labelToggleFaulty, setLabelToggleFaulty] = useState({"Replica 1":false, "Replica 2":false, "Replica 3":false, "Replica 4":false});
+
+  // const toggle_line = (label) => {
+  //   console.log("Toggling ", labelToggle);
+  //   let labels = labelToggle;
+  //   labels[label]=!(labels[label]);
+  //   setLabelToggle(labels);
+
+  //   console.log("NEw bool is ", labelToggle);
+  // };
 
   const toggle_line = (label) => {
-    console.log("Toggling ", labelToggle);
-    let labels = labelToggle;
-    labels[label]=!(labels[label]);
-    setLabelToggle(labels);
-    console.log("NEw bool is ", labelToggle);
+    setLabelToggle((prevLabels) => {
+      console.log("Toggling ", labelToggle);
+      const updatedLabels = { ...prevLabels };
+      updatedLabels[label] = !updatedLabels[label];
+      console.log("NEw bool is ", labelToggle);
+      return updatedLabels;
+    });
+  };
+
+  const toggle_faulty= (label) => {
+    setLabelToggleFaulty((prevLabels) => {
+      console.log("Toggling ", labelToggleFaulty);
+      const updatedLabels = { ...prevLabels };
+      updatedLabels[label] = !updatedLabels[label];
+      console.log("NEw bool is ", labelToggleFaulty);
+      return updatedLabels;
+    });
   };
   const onMessage = (newData)=>{
     setMessageHistory(newData);
@@ -194,7 +218,7 @@ const Visualizer = () => {
     () => ({
       PBFT: "Practical Byzantine Fault Tolerance Graph",
       MvT: mvtTitles[mvtGraphNo],
-      "?": "",
+      "Form": "",
     }),
     [mvtGraphNo]
   );
@@ -204,7 +228,7 @@ const Visualizer = () => {
       // PBFT: <PbftGraph />,
       PBFT: <TestingGraph />,
       MvT: <CandC points={messageChartData[mvtGraphNo]}/>,
-      "?": <Dummy />,
+      "Form": <TransactionForm />,
     }),
     [messageChartData, mvtGraphNo]
   );
@@ -234,6 +258,88 @@ const Visualizer = () => {
       {graph === "MvT" && (
         <div className="my-4" data-aos='fade-in' data-aos-delay={100}>
           <TypeSelector />
+          <div className='mt-2 bg-white rounded-md shadow-md w-full py-3 px-2 dark:border-1p dark:border-solid dark:border-gray-50 dark:bg-blue-300'>
+          <div className='text-20p text-center text-blue-190 p-2 '>Select Replica To be Faulty: </div>
+            <div className="flex gap-x-7 justify-center">
+            <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggleFaulty["Replica 1"] ? "bg-red-500 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_faulty("Replica 1")}
+              >
+                Replica 1
+              </button>
+
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggleFaulty["Replica 2"] ? "bg-red-500 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_faulty("Replica 2")}
+              >
+                Replica 2
+              </button>
+
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggleFaulty["Replica 3"] ? "bg-red-500 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_faulty("Replica 3")}
+              >
+                Replica 3
+              </button>
+
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggleFaulty["Replica 4"] ? "bg-red-500 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_faulty("Replica 4")}
+              >
+                Replica 4
+              </button>
+            </div>
+
+            <div className='text-20p text-center text-blue-190 p-2 '>Toggle Line Graph: </div>
+
+            <div className="flex gap-x-7">
+              {/* Replica Buttons */}
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggle["Replica 1"] ? "bg-blue-190 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_line("Replica 1")}
+              >
+                Replica 1
+              </button>
+
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggle["Replica 2"] ? "bg-blue-190 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_line("Replica 2")}
+              >
+                Replica 2
+              </button>
+
+
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggle["Replica 3"] ? "bg-blue-190 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_line("Replica 3")}
+              >
+                Replica 3
+              </button>
+
+              <button
+                className={`text-20p p-2 m-1 border border-2p border-blue-190 font-sans h-40p w-450p cursor-pointer rounded-md flex items-center justify-center ${
+                  labelToggle["Replica 4"] ? "bg-blue-190 text-white" : "text-blue-190"
+                }`}
+                onClick={() => toggle_line("Replica 4")}
+              >
+                Replica 4
+              </button>
+            </div>
+          </div>
         </div>
       )}
       <div
