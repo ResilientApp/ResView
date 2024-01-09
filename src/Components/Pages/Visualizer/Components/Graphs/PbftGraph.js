@@ -481,27 +481,52 @@ const generatePoints = (
   return newData;
 };
 
-const generateTransactionIds = (data) => {
-  let transactionIds = [];
+const getTransactionData = (data) => {
+  let phaseTimes = {
+    propose_time: 0,
+    pre_prepare_times: [],
+    prepare_times: [],
+    commit_times: []
+  };
 
-  for (const property in data) {
-    transactionIds.push(parseInt(property));
+  console.log(data);
+
+  for (const replicaNum in data) {
+    let replicaData=data[replicaNum];
+    console.log(replicaData);
+    if(replicaData.primary_id==replicaData.replica_id){
+      phaseTimes.propose_time=replicaData.propose_pre_prepare_time;
+    }
+    else{
+      phaseTimes.pre_prepare_times.push(replicaData.propose_pre_prepare_time);
+    }
+    phaseTimes.prepare_times.push(replicaData.prepare_time);
+    phaseTimes.commit_times.push(replicaData.commit_time);
   }
 
-  console.log(transactionIds);
+  console.log(phaseTimes);
 
-  return { transactionIds };
+  return phaseTimes;
 };
 
 const PbftGraph = ({ messageHistory, transactionNumber }) => {
   const { boxValues, resizing, setResizing } = useContext(GraphResizerContext);
   const { width, height } = boxValues;
   const { theme } = useContext(ThemeContext);
+  let missingData = false;
+
+  console.log("History: ", messageHistory);
 
   // TODO: Make the below messageHistory instead of dummy
   //const { transactionIds } = generateTransactionIds(messageHistory);
 
   //const [transactionNumber, setTransactionNumber] = useState(transactionIds[0]);
+
+  if(!(transactionNumber in messageHistory)){
+    messageHistory=dummy;
+    transactionNumber=17;
+    missingData=true;
+  }
 
   const ref = useRef(null);
 
@@ -528,6 +553,8 @@ const PbftGraph = ({ messageHistory, transactionNumber }) => {
       messageHistory,
       transactionNumber
     );
+
+    const timeData = getTransactionData(messageHistory[transactionNumber]);
 
     const { labelsX, labelsY } = generateLabels(xCoords, yCoords);
 
@@ -612,100 +639,158 @@ const PbftGraph = ({ messageHistory, transactionNumber }) => {
         .text(`${label.title}`)
     );
 
-    // REQUEST LINES
-    points.request.end.forEach((end, i) => {
-      end.flag &&
-        svg
-          .append("path")
-          .attr("d", lineGen([points.request.start[0].points, end.points]))
-          .attr("stroke", `${points.request.color}`)
-          .attr("fill", "none")
-          .attr("stroke-width", 1)
-          .attr("marker-end", "url(#arrow-request)")
-          .style("opacity", 0)
-          .transition()
-          .duration(TRANSDURATION)
-          .delay(i * 100)
-          .style("opacity", 1);
-    });
-
-    // PRE-PREPARE LINES
-    points.prePrepare.end.forEach((end, i) => {
-      end.flag &&
-        svg
-          .append("path")
-          .attr("d", lineGen([points.prePrepare.start[0].points, end.points]))
-          .attr("stroke", `${points.prePrepare.color}`)
-          .attr("fill", "none")
-          .attr("stroke-width", 1)
-          .attr("marker-end", "url(#arrow-prePrepare)")
-          .style("opacity", 0)
-          .transition()
-          .duration(TRANSDURATION + 200)
-          .delay(i * 200)
-          .style("opacity", 1);
-    });
-
-    // PREPARE LINES
-    points.prepare.start.map((start, index) =>
-      points.prepare.end[index].map((end, i) => {
-        return (
-          end.flag &&
+    if(!missingData){
+      // REQUEST LINES
+      points.request.end.forEach((end, i) => {
+        end.flag &&
           svg
             .append("path")
-            .attr("d", lineGen([start, end.points]))
-            .attr("stroke", `${points.prepare.color}`)
+            .attr("d", lineGen([points.request.start[0].points, end.points]))
+            .attr("stroke", `${points.request.color}`)
             .attr("fill", "none")
             .attr("stroke-width", 1)
-            .attr("marker-end", "url(#arrow-prepare)")
+            .attr("marker-end", "url(#arrow-request)")
             .style("opacity", 0)
+            .on("mouseover", function (event, d) {
+              d3.select(this).attr("stroke-width", 2);
+              svg
+                .append("text")
+                .attr("x", end.points.x + 10)
+                .attr("y", end.points.y - 10)
+                .attr("class", "tooltip")
+                .text("Request Phase Propose Time: " + timeData.propose_time);
+            })
+            .on("mouseout", function () {
+              // Hide tooltip on mouseout
+              d3.select(this).attr("stroke-width", 1);
+              svg.selectAll(".tooltip").remove();
+            })
             .transition()
-            .duration(TRANSDURATION + 200)
-            .delay(i * 300)
-            .style("opacity", 1)
-        );
-      })
-    );
+            .duration(TRANSDURATION)
+            .delay(i * 100)
+            .style("opacity", 1);
+      });
 
-    // COMMIT LINES
-    points.commit.start.map((start, index) =>
-      points.commit.end[index].map((end, i) => {
-        return (
-          end.flag &&
+      // PRE-PREPARE LINES
+      points.prePrepare.end.forEach((end, i) => {
+        end.flag &&
           svg
             .append("path")
-            .attr("d", lineGen([start, end.points]))
-            .attr("stroke", `${points.commit.color}`)
+            .attr("d", lineGen([points.prePrepare.start[0].points, end.points]))
+            .attr("stroke", `${points.prePrepare.color}`)
             .attr("fill", "none")
             .attr("stroke-width", 1)
-            .attr("marker-end", "url(#arrow-commit)")
+            .attr("marker-end", "url(#arrow-prePrepare)")
             .style("opacity", 0)
+            .on("mouseover", function (event, d) {
+              d3.select(this).attr("stroke-width", 2);
+              svg
+                .append("text")
+                .attr("x", end.points.x + 10)
+                .attr("y", end.points.y - 10)
+                .attr("class", "tooltip")
+                .text("Pre-prepare Phase Completion Time: " + timeData.pre_prepare_times[i]);
+            })
+            .on("mouseout", function () {
+              // Hide tooltip on mouseout
+              d3.select(this).attr("stroke-width", 1);
+              svg.selectAll(".tooltip").remove();
+            })
             .transition()
             .duration(TRANSDURATION + 200)
-            .delay(i * 400)
-            .style("opacity", 1)
-        );
-      })
-    );
+            .delay(i * 200)
+            .style("opacity", 1);
+      });
 
-    // REPLY LINES
-    points.reply.start.forEach((start, i) => {
-      return (
-        start.flag &&
-        svg
-          .append("path")
-          .attr("d", lineGen([start.points, points.reply.end[0].points]))
-          .attr("stroke", `${points.reply.color}`)
-          .attr("fill", "none")
-          .attr("stroke-width", 1)
-          .attr("marker-end", "url(#arrow-reply)")
-          .style("opacity", 0)
-          .transition()
-          .duration(TRANSDURATION + 400)
-          .delay(i * 500)
-          .style("opacity", 1)
+      // PREPARE LINES
+      points.prepare.start.map((start, index) =>
+        points.prepare.end[index].map((end, i) => {
+          return (
+            end.flag &&
+            svg
+              .append("path")
+              .attr("d", lineGen([start, end.points]))
+              .attr("stroke", `${points.prepare.color}`)
+              .attr("fill", "none")
+              .attr("stroke-width", 1)
+              .attr("marker-end", "url(#arrow-prepare)")
+              .style("opacity", 0)
+              .on("mouseover", function (event, d) {
+                d3.select(this).attr("stroke-width", 2);
+                svg
+                  .append("text")
+                  .attr("x", end.points.x + 10)
+                  .attr("y", end.points.y - 10)
+                  .attr("class", "tooltip")
+                  .text("Prepare Phase Completion Time: " + timeData.prepare_times[i]);
+              })
+              .on("mouseout", function () {
+                // Hide tooltip on mouseout
+                d3.select(this).attr("stroke-width", 1);
+                svg.selectAll(".tooltip").remove();
+              })
+              .transition()
+              .duration(TRANSDURATION + 200)
+              .delay(i * 300)
+              .style("opacity", 1)
+          );
+        })
       );
-    });
+
+      // COMMIT LINES
+      points.commit.start.map((start, index) =>
+        points.commit.end[index].map((end, i) => {
+          return (
+            end.flag &&
+            svg
+              .append("path")
+              .attr("d", lineGen([start, end.points]))
+              .attr("stroke", `${points.commit.color}`)
+              .attr("fill", "none")
+              .attr("stroke-width", 1)
+              .attr("marker-end", "url(#arrow-commit)")
+              .style("opacity", 0)
+              .on("mouseover", function (event, d) {
+                d3.select(this).attr("stroke-width", 2);
+                svg
+                  .append("text")
+                  .attr("x", end.points.x + 10)
+                  .attr("y", end.points.y - 10)
+                  .attr("class", "tooltip")
+                  .text("Commit Phase Completion Time: " + timeData.commit_times[i]);
+              })
+              .on("mouseout", function () {
+                // Hide tooltip on mouseout
+                d3.select(this).attr("stroke-width", 1);
+                svg.selectAll(".tooltip").remove();
+              })
+              .transition()
+              .duration(TRANSDURATION + 200)
+              .delay(i * 400)
+              .style("opacity", 1)
+          );
+        })
+      );
+
+      // REPLY LINES
+      points.reply.start.forEach((start, i) => {
+        return (
+          start.flag &&
+          svg
+            .append("path")
+            .attr("d", lineGen([start.points, points.reply.end[0].points]))
+            .attr("stroke", `${points.reply.color}`)
+            .attr("fill", "none")
+            .attr("stroke-width", 1)
+            .attr("marker-end", "url(#arrow-reply)")
+            .style("opacity", 0)
+            .transition()
+            .duration(TRANSDURATION + 400)
+            .delay(i * 500)
+            .style("opacity", 1)
+        );
+      });
+    }
   }, [theme, width, height]);
 
   useEffect(() => {
@@ -731,192 +816,3 @@ const PbftGraph = ({ messageHistory, transactionNumber }) => {
 };
 
 export default PbftGraph;
-
-
-// ? POINTS DATA FOR REFERENCE FOR PLOTTING IS BELOW 
-// const points = {
-//   request: {
-//     color: `${colors[0]}`,
-//     start: [
-//       {
-//         flag: true,
-//         points: { x: 0, y: 0 },
-//       },
-//     ],
-//     end: [
-//       {
-//         flag: true,
-//         points: { x: 200, y: 220 },
-//       },
-//     ],
-//   },
-//   prePrepare: {
-//     color: `${colors[1]}`,
-//     start: [
-//       {
-//         flag: true,
-//         points: { x: 200, y: 220 },
-//       },
-//     ],
-//     end: [
-//       {
-//         flag: true,
-//         points: { x: 400, y: 440 },
-//       },
-//       {
-//         flag: true,
-//         points: { x: 400, y: 660 },
-//       },
-//       {
-//         flag: true,
-//         points: { x: 400, y: 880 },
-//       },
-//     ],
-//   },
-//   prepare: {
-//     color: `${colors[2]}`,
-//     start: [
-//       { x: 400, y: 440 },
-//       { x: 400, y: 660 },
-//       { x: 400, y: 880 },
-//     ],
-//     end: [
-//       [
-//         {
-//           flag: true,
-//           points: { x: 600, y: 220 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 600, y: 660 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 600, y: 880 },
-//         },
-//       ],
-//       [
-//         {
-//           flag: true,
-//           points: { x: 600, y: 220 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 600, y: 440 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 600, y: 880 },
-//         },
-//       ],
-//       [
-//         {
-//           flag: true,
-//           points: { x: 600, y: 220 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 600, y: 440 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 600, y: 660 },
-//         },
-//       ],
-//     ],
-//   },
-//   commit: {
-//     color: `${colors[3]}`,
-//     start: [
-//       { x: 600, y: 220 },
-//       { x: 600, y: 440 },
-//       { x: 600, y: 660 },
-//       { x: 600, y: 880 },
-//     ],
-//     end: [
-//       [
-//         {
-//           flag: true,
-//           points: { x: 800, y: 440 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 660 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 880 },
-//         },
-//       ],
-//       [
-//         {
-//           flag: true,
-//           points: { x: 800, y: 220 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 660 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 880 },
-//         },
-//       ],
-//       [
-//         {
-//           flag: true,
-//           points: { x: 800, y: 440 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 220 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 880 },
-//         },
-//       ],
-//       [
-//         {
-//           flag: true,
-//           points: { x: 800, y: 440 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 660 },
-//         },
-//         {
-//           flag: true,
-//           points: { x: 800, y: 220 },
-//         },
-//       ],
-//     ],
-//   },
-//   reply: {
-//     color: `${colors[4]}`,
-//     start: [
-//       {
-//         flag: true,
-//         points: { x: 800, y: 220 },
-//       },
-//       {
-//         flag: true,
-//         points: { x: 800, y: 440 },
-//       },
-//       {
-//         flag: true,
-//         points: { x: 800, y: 660 },
-//       },
-//       {
-//         flag: true,
-//         points: { x: 800, y: 880 },
-//       },
-//     ],
-//     end: [
-//       {
-//         flag: true,
-//         points: { x: 1000, y: 0 },
-//       },
-//     ],
-//   },
-// };
