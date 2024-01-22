@@ -5,22 +5,31 @@ import { GraphViewContext } from "../../../../../Context/graph";
 import Loader from "../../../../Shared/Loader";
 
 const theme = {
+  textColor: '#fff',
+  legends: {
+    text: {
+      fill: '#fff'
+    }
+  },
   axis: {
-    textColor: "#fff",
-    fontSize: "140px",
-    tickColor: "#eee",
+    legend: {
+      text: {
+        fill: '#fff',
+        fontSize: "14px",
+      },
+    },
+    ticks: {
+      text: {
+        fill: '#fff',
+        fontSize: '14px',
+      }
+    },
   },
   grid: {
     stroke: "#fff",
     strokeWidth: 1,
   },
 };
-
-const secondTheme = {
-  textColor: "#fff",
-  fontSize: "140px",
-};
-
 
 const MvT = ({points}) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +42,18 @@ const MvT = ({points}) => {
   //   }, 2000);
   //   return () => clearTimeout(timer);
   // }, []);
+    let pointScale=[];
+    if(!points){
+      points=[];
+    }
+    else{
+      for(const repliData of points){
+        for(let i=0; i<repliData.data.length; i=i+2){
+          pointScale.push(repliData.data[i]['y']);
+        }
+        break;
+      }
+    }
 
   return (
     <>
@@ -58,25 +79,28 @@ const MvT = ({points}) => {
     }}
     xFormat=' >-.2f'
     yFormat=' >-.2f'
+    theme={theme}
     axisTop={null}
     axisRight={null}
     axisBottom={{
       tickSize: 5,
       tickPadding: 5,
       tickRotation: 0,
+      tickColor: "#fff",
       legend: "Time Since Replica Started Accepting Messages(10^-5 seconds)",
       legendOffset: 36,
-      legendPosition: "middle",
-      fontColor: '#fff'
+      legendPosition: "middle"
     }}
     axisLeft={{
       tickSize: 5,
       tickPadding: 5,
       tickRotation: 0,
+      tickValues: pointScale.length,
       legend: "Number of Messages",
       legendOffset: -40,
-      legendPosition: "middle",
+      legendPosition: "middle"
     }}
+    labelTextColor='#fff'
     enablePoints={true}
     pointSize={10}
     pointColor={{ theme: "background" }}
