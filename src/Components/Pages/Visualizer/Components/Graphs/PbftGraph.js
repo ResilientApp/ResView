@@ -489,11 +489,8 @@ const getTransactionData = (data) => {
     commit_times: []
   };
 
-  console.log(data);
-
   for (const replicaNum in data) {
     let replicaData=data[replicaNum];
-    console.log(replicaData);
     if(replicaData.primary_id==replicaData.replica_id){
       phaseTimes.propose_time=replicaData.propose_pre_prepare_time;
     }
@@ -503,8 +500,6 @@ const getTransactionData = (data) => {
     phaseTimes.prepare_times.push(replicaData.prepare_time);
     phaseTimes.commit_times.push(replicaData.commit_time);
   }
-
-  console.log(phaseTimes);
 
   return phaseTimes;
 };
@@ -527,7 +522,15 @@ const PbftGraph = ({ messageHistory, transactionNumber }) => {
     transactionNumber=17;
     missingData=true;
   }
-
+  else{
+    Object.keys(messageHistory[transactionNumber]).forEach((key) => {
+      if(messageHistory[transactionNumber][key].commit_time<0){
+          messageHistory=dummy;
+          transactionNumber=17;
+          missingData=true;
+      }
+    });
+  }
   const ref = useRef(null);
 
   const debouncedRender = useCallback(() => {
@@ -796,10 +799,6 @@ const PbftGraph = ({ messageHistory, transactionNumber }) => {
   useEffect(() => {
     debouncedRender();
   }, [debouncedRender]);
-
-  useEffect(() => {
-    console.log("MESSAGE HISTIRY", messageHistory);
-  }, [messageHistory]);
 
   return (
     <div className='relative w-full h-full p-4'>

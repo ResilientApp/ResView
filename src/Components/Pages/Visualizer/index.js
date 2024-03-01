@@ -90,6 +90,9 @@ const Visualizer = () => {
       let label_list=[];
 
       Object.keys(transactionData).forEach((key) => {
+        if(transactionData[key].commit_time<0){
+          return;
+        }
         label_list.push("Replica " + key);
         if(transactionData[key].primary_id!==transactionData[key].replica_id){
           pre_prepare_times.push(Math.floor(transactionData[key].propose_pre_prepare_time/10000));
