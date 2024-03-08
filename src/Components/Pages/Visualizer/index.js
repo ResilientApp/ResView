@@ -66,9 +66,9 @@ const Visualizer = () => {
     sendMessage(parseInt(label.slice(-1)-1));
     updateGraph();
   };
-  const onMessage = (newData)=>{
+  const onMessage = (newData, txn_number)=>{
     setMessageHistory(newData);
-    setCurrentTransaction(Object.keys(messageHistory).length);
+    setCurrentTransaction(txn_number);
 
     // console.log(messageHistory, 'MESSAGE HISTORY');
   };
