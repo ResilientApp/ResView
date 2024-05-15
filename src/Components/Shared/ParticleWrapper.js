@@ -84,7 +84,7 @@ const themeObj = {
 const ParticleWrapper = ({ setIsLoading }) => {
     const [init, setInit] = useState(false);
     const { theme } = useContext(ThemeContext);
-    console.log('skifneifje')
+    console.log('skifneifjew')
     useEffect(() => {
         initParticlesEngine(async (engine) => {
             await loadSlim(engine);
