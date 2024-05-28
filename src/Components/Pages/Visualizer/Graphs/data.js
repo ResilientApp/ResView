@@ -483,4 +483,526 @@ export const dummyData = {
             reply_time: 1702001829630,
         },
     },
+    19: {
+        1: {
+            commit_message_timestamps: [
+                1701956096777352000, 1701956096782048300, 1701956096786494200,
+                1701956096786495200,
+            ],
+            commit_time: 1701956096786501400,
+            execution_time: 1701956096786658600,
+            ip: "127.0.0.1",
+            port: 10001,
+            prepare_message_timestamps: [
+                1701956096771379200, 1701956096776308700, 1701956096776386300,
+                1701956096777278200,
+            ],
+            prepare_time: 1701956096776394000,
+            primary_id: 4,
+            propose_pre_prepare_time: 1701956096769596400,
+            replica_id: 1,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829632,
+        },
+        2: {
+            commit_message_timestamps: [
+                1701956096777775600, 1701956096781659100, 1701956096788349400,
+                1701956096788360400,
+            ],
+            commit_time: 1701956096788358400,
+            execution_time: 1701956096789154300,
+            ip: "127.0.0.1",
+            port: 10002,
+            prepare_message_timestamps: [
+                1701956096771574300, 1701956096776823800, 1701956096777767000,
+            ],
+            prepare_time: 1701956096776841500,
+            primary_id: 4,
+            propose_pre_prepare_time: 1701956096767388700,
+            replica_id: 2,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829629,
+        },
+        3: {
+            commit_message_timestamps: [
+                1701956096777398000, 1701956096781702400, 1701956096787757600,
+                1701956096787947500,
+            ],
+            commit_time: 1701956096787769900,
+            execution_time: 1701956096788227600,
+            ip: "127.0.0.1",
+            port: 10003,
+            prepare_message_timestamps: [
+                1701956096772535600, 1701956096777049000, 1701956096777068300,
+                1701956096777263900,
+            ],
+            prepare_time: 1701956096777074400,
+            primary_id: 4,
+            propose_pre_prepare_time: 1701956096767121700,
+            replica_id: 3,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829631,
+        },
+        4: {
+            commit_message_timestamps: [
+                1701956096777512700, 1701956096782015500, 1701956096786524200,
+                1701956096786591700,
+            ],
+            commit_time: 1701956096786530000,
+            execution_time: 1701956096786978000,
+            ip: "127.0.0.1",
+            port: 10004,
+            prepare_message_timestamps: [
+                1701956096772492300, 1701956096776289500, 1701956096776371200,
+                1701956096777435000,
+            ],
+            prepare_time: 1701956096776375000,
+            primary_id: 4,
+            propose_pre_prepare_time: 1701956096767122200,
+            replica_id: 4,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829630,
+        },
+    },
+    20: {
+        1: {
+            commit_message_timestamps: [
+                1701956096777352000, 1701956096782048300, 1701956096786494200,
+                1701956096786495200,
+            ],
+            commit_time: 1701956096786501400,
+            execution_time: 1701956096786658600,
+            ip: "127.0.0.1",
+            port: 10001,
+            prepare_message_timestamps: [
+                1701956096771379200, 1701956096776308700, 1701956096776386300,
+                1701956096777278200,
+            ],
+            prepare_time: 1701956096776394000,
+            primary_id: 2,
+            propose_pre_prepare_time: 1701956096769596400,
+            replica_id: 1,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829632,
+        },
+        2: {
+            commit_message_timestamps: [
+                1701956096777775600, 1701956096781659100, 1701956096788349400,
+                1701956096788360400,
+            ],
+            commit_time: 1701956096788358400,
+            execution_time: 1701956096789154300,
+            ip: "127.0.0.1",
+            port: 10002,
+            prepare_message_timestamps: [
+                1701956096771574300, 1701956096776823800, 1701956096777767000,
+            ],
+            prepare_time: 1701956096776841500,
+            primary_id: 2,
+            propose_pre_prepare_time: 1701956096767388700,
+            replica_id: 2,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829629,
+        },
+        3: {
+            commit_message_timestamps: [
+                1701956096777398000, 1701956096781702400, 1701956096787757600,
+                1701956096787947500,
+            ],
+            commit_time: 1701956096787769900,
+            execution_time: 1701956096788227600,
+            ip: "127.0.0.1",
+            port: 10003,
+            prepare_message_timestamps: [
+                1701956096772535600, 1701956096777049000, 1701956096777068300,
+                1701956096777263900,
+            ],
+            prepare_time: 1701956096777074400,
+            primary_id: 2,
+            propose_pre_prepare_time: 1701956096767121700,
+            replica_id: 3,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829631,
+        },
+        // 4: {
+        //     commit_message_timestamps: [
+        //         1701956096777512700, 1701956096782015500, 1701956096786524200,
+        //         1701956096786591700,
+        //     ],
+        //     commit_time: 1701956096786530000,
+        //     execution_time: 1701956096786978000,
+        //     ip: "127.0.0.1",
+        //     port: 10004,
+        //     prepare_message_timestamps: [
+        //         1701956096772492300, 1701956096776289500, 1701956096776371200,
+        //         1701956096777435000,
+        //     ],
+        //     prepare_time: 1701956096776375000,
+        //     primary_id: 2,
+        //     propose_pre_prepare_time: 1701956096767122200,
+        //     replica_id: 4,
+        //     txn_commands: ["GET"],
+        //     txn_keys: ["test"],
+        //     txn_number: 17,
+        //     txn_values: [""],
+        //     reply_time: 1702001829630,
+        // },
+    },
+    21: {
+        1: {
+            commit_message_timestamps: [
+                1701956096777352000, 1701956096782048300, 1701956096786494200,
+                1701956096786495200,
+            ],
+            commit_time: 1701956096786501400,
+            execution_time: 1701956096786658600,
+            ip: "127.0.0.1",
+            port: 10001,
+            prepare_message_timestamps: [
+                1701956096771379200, 1701956096776308700, 1701956096776386300,
+                1701956096777278200,
+            ],
+            prepare_time: 1701956096776394000,
+            primary_id: 5,
+            propose_pre_prepare_time: 1701956096769596400,
+            replica_id: 1,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829632,
+        },
+        2: {
+            commit_message_timestamps: [
+                1701956096777775600, 1701956096781659100, 1701956096788349400,
+                1701956096788360400,
+            ],
+            commit_time: 1701956096788358400,
+            execution_time: 1701956096789154300,
+            ip: "127.0.0.1",
+            port: 10002,
+            prepare_message_timestamps: [
+                1701956096771574300, 1701956096776823800, 1701956096777767000,
+            ],
+            prepare_time: 1701956096776841500,
+            primary_id: 5,
+            propose_pre_prepare_time: 1701956096767388700,
+            replica_id: 2,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829629,
+        },
+        3: {
+            commit_message_timestamps: [
+                1701956096777398000, 1701956096781702400, 1701956096787757600,
+                1701956096787947500,
+            ],
+            commit_time: 1701956096787769900,
+            execution_time: 1701956096788227600,
+            ip: "127.0.0.1",
+            port: 10003,
+            prepare_message_timestamps: [
+                1701956096772535600, 1701956096777049000, 1701956096777068300,
+                1701956096777263900,
+            ],
+            prepare_time: 1701956096777074400,
+            primary_id: 5,
+            propose_pre_prepare_time: 1701956096767121700,
+            replica_id: 3,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829631,
+        },
+        4: {
+            commit_message_timestamps: [
+                1701956096777512700, 1701956096782015500, 1701956096786524200,
+                1701956096786591700,
+            ],
+            commit_time: 1701956096786530000,
+            execution_time: 1701956096786978000,
+            ip: "127.0.0.1",
+            port: 10004,
+            prepare_message_timestamps: [
+                1701956096772492300, 1701956096776289500, 1701956096776371200,
+                1701956096777435000,
+            ],
+            prepare_time: 1701956096776375000,
+            primary_id: 5,
+            propose_pre_prepare_time: 1701956096767122200,
+            replica_id: 4,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829630,
+        },
+    },
+    22: {
+        1: {
+            commit_message_timestamps: [
+                1701956096777352000, 1701956096782048300, 1701956096786494200,
+                1701956096786495200,
+            ],
+            commit_time: 1701956096786501400,
+            execution_time: 1701956096786658600,
+            ip: "127.0.0.1",
+            port: 10001,
+            prepare_message_timestamps: [
+                1701956096771379200, 1701956096776308700, 1701956096776386300,
+                1701956096777278200,
+            ],
+            prepare_time: 1701956096776394000,
+            primary_id: 1,
+            propose_pre_prepare_time: 1701956096769596400,
+            replica_id: 1,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829632,
+        },
+        2: {
+            commit_message_timestamps: [
+                1701956096777775600, 1701956096781659100, 1701956096788349400,
+                1701956096788360400,
+            ],
+            commit_time: 1701956096788358400,
+            execution_time: 1701956096789154300,
+            ip: "127.0.0.1",
+            port: 10002,
+            prepare_message_timestamps: [
+                1701956096771574300, 1701956096776823800, 1701956096777767000,
+            ],
+            prepare_time: 1701956096776841500,
+            primary_id: 1,
+            propose_pre_prepare_time: 1701956096767388700,
+            replica_id: 2,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829629,
+        },
+        // 3: {
+        //     commit_message_timestamps: [
+        //         1701956096777398000, 1701956096781702400, 1701956096787757600,
+        //         1701956096787947500,
+        //     ],
+        //     commit_time: 1701956096787769900,
+        //     execution_time: 1701956096788227600,
+        //     ip: "127.0.0.1",
+        //     port: 10003,
+        //     prepare_message_timestamps: [
+        //         1701956096772535600, 1701956096777049000, 1701956096777068300,
+        //         1701956096777263900,
+        //     ],
+        //     prepare_time: 1701956096777074400,
+        //     primary_id: 1,
+        //     propose_pre_prepare_time: 1701956096767121700,
+        //     replica_id: 3,
+        //     txn_commands: ["GET"],
+        //     txn_keys: ["test"],
+        //     txn_number: 17,
+        //     txn_values: [""],
+        //     reply_time: 1702001829631,
+        // },
+        4: {
+            commit_message_timestamps: [
+                1701956096777512700, 1701956096782015500, 1701956096786524200,
+                1701956096786591700,
+            ],
+            commit_time: 1701956096786530000,
+            execution_time: 1701956096786978000,
+            ip: "127.0.0.1",
+            port: 10004,
+            prepare_message_timestamps: [
+                1701956096772492300, 1701956096776289500, 1701956096776371200,
+                1701956096777435000,
+            ],
+            prepare_time: 1701956096776375000,
+            primary_id: 1,
+            propose_pre_prepare_time: 1701956096767122200,
+            replica_id: 4,
+            txn_commands: ["GET"],
+            txn_keys: ["test"],
+            txn_number: 17,
+            txn_values: [""],
+            reply_time: 1702001829630,
+        },
+    },
 };
+
+export const tableDataDummy = {
+    "17": {
+        "transactionNumber": "17",
+        "primary": "Replica 2",
+        "faultReplicas": "1",
+        "replicaDetails": {
+            "1": {
+                "commitTime": 1701956096786501400,
+                "execTime": 1701956096786658600,
+                "prepTime": 1701956096776394000
+            },
+            "2": {
+                "commitTime": 1701956096788358400,
+                "execTime": 1701956096789154300,
+                "prepTime": 1701956096776841500
+            },
+            "4": {
+                "commitTime": 1701956096786530000,
+                "execTime": 1701956096786978000,
+                "prepTime": 1701956096776375000
+            }
+        }
+    },
+    "18": {
+        "transactionNumber": "18",
+        "primary": "Replica 1",
+        "faultReplicas": "0",
+        "replicaDetails": {
+            "1": {
+                "commitTime": 1701956096786501400,
+                "execTime": 1701956096786658600,
+                "prepTime": 1701956096776394000
+            },
+            "2": {
+                "commitTime": 1701956096788358400,
+                "execTime": 1701956096789154300,
+                "prepTime": 1701956096776841500
+            },
+            "3": {
+                "commitTime": 1701956096787769900,
+                "execTime": 1701956096788227600,
+                "prepTime": 1701956096777074400
+            },
+            "4": {
+                "commitTime": 1701956096786530000,
+                "execTime": 1701956096786978000,
+                "prepTime": 1701956096776375000
+            }
+        }
+    },
+    "19": {
+        "transactionNumber": "19",
+        "primary": "Replica 4",
+        "faultReplicas": "0",
+        "replicaDetails": {
+            "1": {
+                "commitTime": 1701956096786501400,
+                "execTime": 1701956096786658600,
+                "prepTime": 1701956096776394000
+            },
+            "2": {
+                "commitTime": 1701956096788358400,
+                "execTime": 1701956096789154300,
+                "prepTime": 1701956096776841500
+            },
+            "3": {
+                "commitTime": 1701956096787769900,
+                "execTime": 1701956096788227600,
+                "prepTime": 1701956096777074400
+            },
+            "4": {
+                "commitTime": 1701956096786530000,
+                "execTime": 1701956096786978000,
+                "prepTime": 1701956096776375000
+            }
+        }
+    },
+    "20": {
+        "transactionNumber": "20",
+        "primary": "Replica 2",
+        "faultReplicas": "1",
+        "replicaDetails": {
+            "1": {
+                "commitTime": 1701956096786501400,
+                "execTime": 1701956096786658600,
+                "prepTime": 1701956096776394000
+            },
+            "2": {
+                "commitTime": 1701956096788358400,
+                "execTime": 1701956096789154300,
+                "prepTime": 1701956096776841500
+            },
+            "3": {
+                "commitTime": 1701956096787769900,
+                "execTime": 1701956096788227600,
+                "prepTime": 1701956096777074400
+            }
+        }
+    },
+    "21": {
+        "transactionNumber": "21",
+        "primary": "No Primary Selected",
+        "faultReplicas": "0",
+        "replicaDetails": {
+            "1": {
+                "commitTime": 1701956096786501400,
+                "execTime": 1701956096786658600,
+                "prepTime": 1701956096776394000
+            },
+            "2": {
+                "commitTime": 1701956096788358400,
+                "execTime": 1701956096789154300,
+                "prepTime": 1701956096776841500
+            },
+            "3": {
+                "commitTime": 1701956096787769900,
+                "execTime": 1701956096788227600,
+                "prepTime": 1701956096777074400
+            },
+            "4": {
+                "commitTime": 1701956096786530000,
+                "execTime": 1701956096786978000,
+                "prepTime": 1701956096776375000
+            }
+        }
+    },
+    "22": {
+        "transactionNumber": "22",
+        "primary": "Replica 1",
+        "faultReplicas": "1",
+        "replicaDetails": {
+            "1": {
+                "commitTime": 1701956096786501400,
+                "execTime": 1701956096786658600,
+                "prepTime": 1701956096776394000
+            },
+            "2": {
+                "commitTime": 1701956096788358400,
+                "execTime": 1701956096789154300,
+                "prepTime": 1701956096776841500
+            },
+            "4": {
+                "commitTime": 1701956096786530000,
+                "execTime": 1701956096786978000,
+                "prepTime": 1701956096776375000
+            }
+        }
+    }
+}

@@ -1,6 +1,7 @@
 // MVT GRAPH COMPUTATION 
 
-import { COLORS_MVT_GRAPH } from "../../../../../Constants";
+import { COLORS_MVT_GRAPH } from "../../../../Constants";
+
 
 export const mvtGraphComputation = (transactionData, labelToggle, chartMaxDataUpdate, messageChartDataUpdate) => {
 

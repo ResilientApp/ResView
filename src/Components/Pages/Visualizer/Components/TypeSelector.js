@@ -1,7 +1,7 @@
 import { Tooltip } from '@mui/material';
 import cn from 'classnames';
 import React, { useContext } from 'react'
-import { GraphViewContext } from '../../../../../Context/graph';
+import { GraphViewContext } from '../../../../Context/graph';
 
 const selectorArr = [1, 2];
 

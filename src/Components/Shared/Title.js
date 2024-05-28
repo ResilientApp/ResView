@@ -35,9 +35,9 @@ export const Subtitle = ({ subtitle }) => {
 };
 
 export const FontVarTitle = ({ title, fontClass }) => {
-    const varFont = fontClass ? fontClass : 'text-22p';
+    const varFont = fontClass ? fontClass : 'text-18p';
     return (
-        <div className={`dark:text-gray-300 text-gray-700 font-bold text-center ${varFont}`}>
+        <div className={`dark:text-gray-300 text-gray-700 font-bold text-center ${varFont} mb-[-1em]`}>
             {title}
         </div>
     );

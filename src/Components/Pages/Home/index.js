@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Wrapper from '../../Shared/Wrapper';
 // TODO: Remove the below import and entire components after demo is done
 import { BLOG_LINK, URL_VISUALIZER_PAGE } from '../../../Constants';
 import { LinkButton } from '../../Shared/Buttons';
 import Graphs from './Sections/Graphs';
 import PbftIntro from './Sections/PbftIntro';
+import Navbar from '../../Shared/Navbar';
+import { NavbarToggleContext } from '../../../Context/navbarToggle';
+import { BorderToggleRef } from '../../../App';
+import Footer from '../../Shared/Footer';
 
 const Home = () => {
   
@@ -53,12 +57,16 @@ const Home = () => {
   );
 };
 
-const index = () => {
+const Index = () => {
+  const { borderToggle } = useContext(NavbarToggleContext);
   return (
     <>
+      <Navbar borderToggle={borderToggle} />
+      <BorderToggleRef />
       <Home />
+      <Footer />
     </>
   );
 }
 
-export default index
+export default Index

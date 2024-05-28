@@ -8,8 +8,8 @@ import { ThemeContext } from "../../../../../Context/theme";
 import { cancelIcon, pauseIcon, playIcon } from "../../../../../Resources/Icons";
 import { DropDownButtons, IconButtons } from "../../../../Shared/Buttons";
 import { Icon } from "../../../../Shared/Icon";
-import { connectionRender, labelFaultyNode, labelPrimaryNode } from "../Computation/D3Pbft";
-import { generateConnections, generateLabels, generateLines, generatePoints, generateTransactionIds } from "../Computation/CompPbft";
+import { connectionRender, labelFaultyNode, labelPrimaryNode } from "../../Computation/D3Pbft";
+import { generateConnections, generateLabels, generateLines, generatePoints, generateTransactionIds } from "../../Computation/CompPbft";
 
 
 

@@ -27,7 +27,7 @@ const Footer = () => {
           </span>
         </div>
         <div className='text-12p text-gray-100 bold'>
-        v2.0.1 &middot; &copy; 2023-2024 &middot; All rights reserved
+        v3.0.1 &middot; &copy; 2023-2024 &middot; All rights reserved
         </div>
     </div>
     </div>

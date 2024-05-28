@@ -5,11 +5,11 @@ import { anglesRightIcon } from "../../../../../Resources/Icons";
 import { MvTSelectButton } from "../../../../Shared/Buttons";
 import { Icon } from "../../../../Shared/Icon";
 import { FontVarTitle } from "../../../../Shared/Title";
-import ResizableContainer from "../../ResizableContainer";
+import ResizableContainer from "../GraphContainer";
 import Manipulator from "./Manipulator";
 import MvtGraph from "./Graph";
+import { mvtGraphComputation } from "../../Computation/MVT";
 import { dummyData } from "../data";
-import { mvtGraphComputation } from "../Computation/MVT";
 
 const LABEL_TOGGLES = { "Replica 1": true, "Replica 2": true, "Replica 3": true, "Replica 4": true }
 
@@ -80,27 +80,33 @@ const Mvt = ({ messageHistory, currentTransaction = 17 }) => {
 
     return (
         <div className="flex flex-col">
-            <FontVarTitle title={'Messages vs Time Graph'} />
-            <div className="flex items-center justify-center gap-x-16 mt-8 mb-10">
-                <MvTSelectButton title={'Prepare Messages'} onClick={() => toggleMvtGraphNoChange(1)} graphNo={1} />
-                <MvTSelectButton title={'Commit Messages'} onClick={() => toggleMvtGraphNoChange(2)} graphNo={2} />
+            <div className="grid grid-cols-2 gap-x-6 w-full">
+                <ResizableContainer title={'Prepare Messages v Time'} >
+                    <div className='relative w-full h-full pl-4 pr-2 pb-6'>
+                        {(resizing || isLoading) ? (
+                            <div className='loader'>
+                                <div>MVT</div>
+                                <div className='inner' />
+                            </div>
+                        ) : (
+                            <MvtGraph chartData={messageChartData} chartMaxData={chartMaxData} mvtGraphNo={1} />
+                        )}
+                    </div>
+                </ResizableContainer>
+                <ResizableContainer title={'Commit Messages v Time'}>
+                    <div className='relative w-full h-full pl-4 pr-2 pb-6'>
+                        {(resizing || isLoading) ? (
+                            <div className='loader'>
+                                <div>MVT</div>
+                                <div className='inner' />
+                            </div>
+                        ) : (
+                            <MvtGraph chartData={messageChartData} chartMaxData={chartMaxData} mvtGraphNo={2} />
+                        )}
+                    </div>
+                </ResizableContainer>
             </div>
-            <ResizableContainer>
-                <div className='relative w-full h-full pl-4 pr-2 pb-6'>
-                    {(resizing || isLoading) ? (
-                        <div class='loader'>
-                            <div>MVT</div>
-                            <div class='inner' />
-                        </div>
-                    ) : (
-                        <MvtGraph chartData={messageChartData} chartMaxData={chartMaxData} />
-                    )}
-                </div>
-                <div className='absolute bottom-0 right-0 rotate-45'>
-                    <Icon path={anglesRightIcon} fill={"gray"} height={"0.8em"} />
-                </div>
-            </ResizableContainer>
-            <div className='mt-10 mb-4 flex items-center justify-center'>
+            <div className='mt-12 mb-4 flex items-center justify-center'>
                 <Manipulator
                     toggleFaulty={toggleFaulty}
                     toggleLine={toggleLine}

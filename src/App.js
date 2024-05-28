@@ -3,7 +3,8 @@ import { isMobile } from 'react-device-detect';
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Home from './Components/Pages/Home';
 import Team from './Components/Pages/Team';
-import Visualizer from './Components/Pages/Visualizer';
+// TODO: Change the below from index2 to index for Visualizer
+import Visualizer from './Components/Pages/Visualizer/index2';
 import Footer from './Components/Shared/Footer';
 import Loader from './Components/Shared/Loader';
 import Navbar from './Components/Shared/Navbar';
@@ -16,7 +17,7 @@ import { NavbarToggleContext } from './Context/navbarToggle';
 import { ThemeContext } from './Context/theme';
 import './Styles/App.css';
 
-const BorderToggleRef = () => {
+export const BorderToggleRef = () => {
   const { bToggleElement } = useContext(NavbarToggleContext);
 
   return (
@@ -26,7 +27,6 @@ const BorderToggleRef = () => {
 
 const PreSynthApp = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const { borderToggle } = useContext(NavbarToggleContext);
   const { toggleLightTheme, toggleDarkTheme } = useContext(ThemeContext);
 
   if (localStorage.getItem("theme") === "light") {
@@ -36,6 +36,7 @@ const PreSynthApp = () => {
     toggleDarkTheme();
     document.documentElement.setAttribute("data-theme", "dark");
   }
+
 
   return (
     <>
@@ -48,8 +49,6 @@ const PreSynthApp = () => {
               <OnlyDesktop />
             ) : (
               <Router>
-                <Navbar borderToggle={borderToggle} />
-                <BorderToggleRef />
                 <Routes>
                     <Route path={`${URL_TEAM_PAGE}`} element={<Team />} />
                     <Route path={`${URL_HOME_PAGE}`} element={<Home />} />
@@ -57,8 +56,7 @@ const PreSynthApp = () => {
                   <Route path='*' element={<NotFound />} />
                     <Route index element={<Navigate to={`${URL_REROUTE_PAGE}`} />} />
                 </Routes>
-                <Footer />
-              </Router >
+              </Router>
             )}
           </>
       )}

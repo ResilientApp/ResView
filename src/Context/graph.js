@@ -32,32 +32,6 @@ export const GraphViewContext = createContext({
   toggleMvtGraphNoChange: () => {},
 });
 
-export const GraphViewProvider = ({ children }) => {
-  const [graph, setGraph] = useState("MvT");
-  const [mvtGraphNo, setMvtGraphNo] = useState(1);
-  const { Provider } = GraphViewContext;
-
-  const toggleGraphChange = (value) => {
-    setGraph(value);
-  };
-
-  const toggleMvtGraphNoChange = (value) => {
-    setMvtGraphNo(value);
-  };
-
-  return (
-    <Provider
-      value={{
-        graph,
-        mvtGraphNo,
-        toggleGraphChange,
-        toggleMvtGraphNoChange,
-      }}
-    >
-      {children}
-    </Provider>
-  );
-};
 
 // CONTEXT FOR PBFT GRAPH ANIMATION SPEEDS 
 export const PbftAnimationSpeedContext = createContext({

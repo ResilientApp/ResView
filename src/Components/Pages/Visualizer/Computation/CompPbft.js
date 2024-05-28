@@ -1,5 +1,5 @@
-import { ACTION_TYPE_PBFT_GRAPH, COLORS_PBFT_GRAPH, COLORS_PBFT_GRAPH_LIGHT, NODES_PBFT_GRAPH, TITLES_PBFT_GRAPH } from "../../../../../Constants";
-import { dummyData } from "../data";
+import { ACTION_TYPE_PBFT_GRAPH, COLORS_PBFT_GRAPH, COLORS_PBFT_GRAPH_LIGHT, NODES_PBFT_GRAPH, TITLES_PBFT_GRAPH } from "../../../../Constants";
+import { dummyData } from "../Graphs/data";
 
 const primaryIndexToPoint = {
     1: 2,

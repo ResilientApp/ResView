@@ -112,9 +112,8 @@ const themeObj = {
     }
 }
 
-const MvtGraph = ({ chartData, chartMaxData }) => {
-    const { mvtGraphNo } = useContext(GraphViewContext)
-    const { theme } = useContext(ThemeContext);
+const MvtGraph = ({ chartData, chartMaxData, mvtGraphNo }) => {
+    const { theme } = useContext(ThemeContext)
 
     const graphTheme = theme ? themeObj : {
         ...themeObj,
@@ -227,126 +226,4 @@ const MvtGraph = ({ chartData, chartMaxData }) => {
     );
 }
 
-
-
 export default MvtGraph
-
-// useEffect(() => {
-//     console.log('MESSAGE HISTORY', messageHistory);
-//     if (!(currentTransaction in messageHistory) || messageHistory[currentTransaction].current_time < 0) {
-//         setMessageChartData([[], []])
-//         // console.log(currentTransaction, " Not in messageHistory")
-//     }
-//     else {
-//         const transactionData = messageHistory[currentTransaction];
-//         let startTime = 0;
-//         let firstPrepareTime = 0;
-//         let prePrepareTimes = [];
-//         let prepareTimes = [];
-//         let allPrepareTimes = [];
-//         let allCommiteTimes = [];
-//         let labelList = [];
-
-//         Object.keys(transactionData).forEach((key) => {
-//             labelList.push("Replica " + key);
-
-//             if (transactionData[key].primary_id !== transactionData[key].replica_id) {
-//                 prePrepareTimes.push(Math.floor(transactionData[key].propose_pre_prepare_time / 10000));
-//             }
-
-//             prepareTimes.push(Math.floor(transactionData[key].prepare_time / 10000));
-
-//             let replicaPrepareTS = [];
-//             let replicaCommitTS = [];
-
-//             transactionData[key]["prepare_message_timestamps"].map((time) =>
-//                 replicaPrepareTS.push(Math.floor(time / 10000))
-//             );
-
-//             transactionData[key]["commit_message_timestamps"].map((time) =>
-//                 replicaCommitTS.push(Math.floor(time / 10000))
-//             );
-
-//             allPrepareTimes.push(replicaPrepareTS);
-//             allCommiteTimes.push(replicaCommitTS);
-//         });
-
-//         startTime = Math.min(...prePrepareTimes);
-//         firstPrepareTime = Math.min(...prepareTimes);
-
-//         let prepareChartData = [];
-//         let commitChartData = [];
-//         let maxPrepareTS = 0;
-//         let maxCommitTS = 0;
-
-//         for (const element of allPrepareTimes) {
-//             let lineData = [{ x: 0, y: 0 }];
-//             for (let j = 0; j < element.length; j++) {
-//                 const relativeTime = element[j] - startTime;
-//                 lineData.push({ x: relativeTime, y: j });
-//                 lineData.push({ x: relativeTime, y: j + 1 });
-//                 maxPrepareTS = Math.max(maxPrepareTS, relativeTime);
-//             }
-//             prepareChartData.push(lineData);
-//         }
-
-//         for (const element of allCommiteTimes) {
-//             let lineData = [{ x: 0, y: 0 }];
-//             for (let j = 0; j < element.length; j++) {
-//                 const relativeTime = element[j] - firstPrepareTime;
-//                 lineData.push({ x: relativeTime, y: j });
-//                 lineData.push({ x: relativeTime, y: j + 1 });
-//                 maxCommitTS = Math.max(maxCommitTS, relativeTime);
-//             }
-//             commitChartData.push(lineData);
-//         }
-
-//         let data = {};
-
-//         let preparePointsObj = { max: 0, points: [] }
-//         preparePointsObj.max = maxPrepareTS;
-
-//         for (let i = 0; i < labelList.length; i++) {
-//             if (!labelToggle[labelList[i]]) {
-//                 data = {
-//                     id: labelList[i],
-//                     color: COLORS_MVT_GRAPH[i],
-//                     data: [],
-//                 };
-//             }
-//             else {
-//                 data = {
-//                     id: labelList[i],
-//                     color: COLORS_MVT_GRAPH[i],
-//                     data: prepareChartData[i],
-//                 };
-//             }
-//             preparePointsObj.points.push(data);
-//         }
-
-//         let commitPointsObj = { max: 0, points: [] }
-//         commitPointsObj.max = maxCommitTS;
-
-//         for (let i = 0; i < labelList.length; i++) {
-//             if (!labelToggle[labelList[i]]) {
-//                 data = {
-//                     id: labelList[i],
-//                     color: COLORS_MVT_GRAPH[i],
-//                     data: [],
-//                 };
-//             }
-//             else {
-//                 data = {
-//                     id: labelList[i],
-//                     color: COLORS_MVT_GRAPH[i],
-//                     data: commitChartData[i],
-//                 };
-//             }
-//             commitPointsObj.points.push(data);
-//         }
-
-//         let pointData = { 1: preparePointsObj, 2: commitPointsObj };
-
-//         setMessageChartData(pointData);
-//     }
-// }, [messageHistory, currentTransaction, labelToggle, resetGraph]);
