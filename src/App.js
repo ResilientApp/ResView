@@ -74,7 +74,7 @@ const PreSynthApp = () => {
           </Routes>
         </Router>
       )}
-      <ParticleWrapper init={init} particlesLoaded={particlesLoaded} />
+      {/* <ParticleWrapper init={init} particlesLoaded={particlesLoaded} /> */}
     </>
   );
 }

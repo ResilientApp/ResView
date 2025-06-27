@@ -65,7 +65,7 @@ const Index = ({ loading }) => {
   const { borderToggle } = useContext(NavbarToggleContext);
   return (
     <>
-      {loading && <LinearProgress />}
+      {/* {loading && <LinearProgress />} */}
       <Navbar borderToggle={borderToggle} />
       <BorderToggleRef />
       <div className="flex items-center justify-center w-full">
