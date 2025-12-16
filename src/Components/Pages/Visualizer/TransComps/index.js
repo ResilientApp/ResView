@@ -1,11 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LOGO_DARK, LOGO_LIGHT, URL_HOME_PAGE } from '../../../../Constants';
+import classNames from 'classnames';
+import { URL_HOME_PAGE } from '../../../../Constants';
+import { SidebarToggleContext } from '../../../../Context/sidebarToggle';
 import { ThemeContext } from '../../../../Context/theme';
 import { VizDataHistoryContext } from '../../../../Context/visualizer';
 import { cancelIcon, tickIcon } from '../../../../Resources/Icons';
 import HRline from '../../../Shared/HRline';
 import { Icon } from '../../../Shared/Icon';
+import Logo from '../../../Shared/Logo';
 
 const LINK_BUTTON_CLASSES = "relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border-3p before:border-blue-500 before:bg-primary/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark: before:border-gray-700 dark:before:bg-gray-800 sm:w-max cursor-pointer"
 
@@ -50,10 +53,8 @@ const LinkButton = ({ title, link }) => {
 const TransInfo = () => {
 
     const { primaryIndexVal, currentTransaction, replicaStatus } = useContext(VizDataHistoryContext)
-
+    const { isSidebarOpen, toggleSidebar } = useContext(SidebarToggleContext);
     const { theme } = useContext(ThemeContext);
-
-    const logo = theme ? LOGO_DARK : LOGO_LIGHT;
 
     const primary = primaryIndexVal === -1 ? 'No Primary' : `Replica ${primaryIndexVal}`
 
@@ -110,17 +111,17 @@ const TransInfo = () => {
     }, [replicaStatus]);
 
     return (
-        <div className="h-full w-220p fixed z-1 top-0 left-0 overflow-x-hidden p-2 py-6 flex flex-col items-center justify-around opacity-1 border-r-3p border-solid border-gray-700 dark:border-gray-50 dark:text-gray-300 gap-y-6 scrollbar">
-            <Link to={URL_HOME_PAGE} className='flex items-center justify-center gap-x-2 w-full cursor-pointer'>
-                <img
-                    src={logo}
-                    alt='ResDb View Logo'
-                    className='h-30p w-30p'
-                />
-                <div className='text-blue-190 text-18p font-sans font-bold'>
-                    <span className="text-20p font-bold text-gray-900 dark:text-white">ResView</span>
-                </div>
-            </Link>
+        <>
+            <div className={classNames(
+                "h-full fixed z-1 top-0 left-0 overflow-x-hidden p-2 py-6 flex flex-col items-center justify-around opacity-1 border-r-3p border-solid border-gray-700 dark:border-gray-50 dark:text-gray-300 gap-y-6 scrollbar transition-all duration-300 ease-in-out",
+                isSidebarOpen ? "w-220p" : "w-0 p-0 opacity-0 pointer-events-none"
+            )}>
+                <Link to={URL_HOME_PAGE} className='flex items-center justify-center gap-x-2 w-full cursor-pointer'>
+                    {/* <Logo className='h-30p w-30p' /> */}
+                    <div className='text-blue-190 text-18p font-sans font-bold'>
+                        <span className="text-20p font-bold text-gray-900 dark:text-white">ResView</span>
+                    </div>
+                </Link>
             <div className='w-full px-4'>
                 <HRline />
             </div>
@@ -157,7 +158,18 @@ const TransInfo = () => {
                     />
                 ))}
             </div>
-        </div>
+            </div>
+            <button
+                onClick={toggleSidebar}
+                className={classNames(
+                    "mt-2 fixed z-10 top-4 p-1 rounded-md bg-blue-10 dark:bg-blue-450 border-1p border-solid border-gray-700 dark:border-gray-50 hover:bg-gray-400 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer opacity-80 hover:opacity-100",
+                    isSidebarOpen ? "left-4" : "left-2"
+                )}
+                aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+                <Logo className='h-30p w-30p' />
+            </button>
+        </>
     )
 }
 

@@ -1,6 +1,8 @@
 import { useWindowSize } from "@react-hook/window-size";
-import React from "react";
+import React, { useContext } from "react";
+import classNames from "classnames";
 import { DATA_TABLE_DELAY } from "../../../Constants";
+import { SidebarToggleContext } from "../../../Context/sidebarToggle";
 import Footer from "../../Shared/Footer";
 import HRline from '../../Shared/HRline';
 import Mvt from "./Graphs/MVT";
@@ -13,6 +15,7 @@ import Overview from "./TransComps/Components/Overview";
 
 const Visualizer = () => {
     const [_, height] = useWindowSize()
+    const { isSidebarOpen } = useContext(SidebarToggleContext);
 
     let concurrentHeight = Math.floor(height / 2) + 200
 
@@ -30,7 +33,10 @@ const Visualizer = () => {
     return (
         <div className="h-full w-screen">
             <TransInfo />
-            <div className="ml-[220px] px-8 pt-12 h-full">
+            <div className={classNames(
+                "px-8 pt-12 h-full transition-all duration-300 ease-in-out",
+                isSidebarOpen ? "ml-[220px]" : "ml-0"
+            )}>
                 <div className="grid grid-cols-3.5f-1f gap-x-6 w-full h-full" id="pbft-graph" >
                     <Pbft />
                     <div 

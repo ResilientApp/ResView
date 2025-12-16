@@ -2,7 +2,7 @@ import { Tooltip } from "@mui/material";
 import cn from "classnames";
 import React, { memo, useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { BLOG_LINK, ICON_DEFAULT_COLOR, LOGO_DARK, LOGO_LIGHT, REPO_LINK, SUN_COLOR, URL_HOME_PAGE, URL_TEAM_PAGE, URL_VISUALIZER_PAGE } from "../../Constants";
+import { BLOG_LINK, ICON_DEFAULT_COLOR, REPO_LINK, SUN_COLOR, URL_HOME_PAGE, URL_TEAM_PAGE, URL_VISUALIZER_PAGE } from "../../Constants";
 import { PbftGraphClearContext } from "../../Context/graph";
 import { NavbarToggleContext } from "../../Context/navbarToggle";
 import { ThemeContext } from "../../Context/theme";
@@ -14,6 +14,7 @@ import {
   teamIcon
 } from "../../Resources/Icons";
 import { Icon } from "./Icon";
+import Logo from "./Logo";
 
 const LightOrDark = memo(() => {
   const { theme, toggleLightTheme, toggleDarkTheme } = useContext(ThemeContext);
@@ -80,19 +81,13 @@ const Navbar = memo(() => {
   const { theme } = useContext(ThemeContext);
   const { borderToggle } = useContext(NavbarToggleContext);
 
-  const logo = theme ? LOGO_DARK : LOGO_LIGHT;
-
   return (
       <div className={cn(
         'w-full py-[1em] px-8 text-white lg:px-8 lg:py-4 flex items-center justify-between flex-initial fixed top-0 z-20',
         {'border-b-2 dark:bg-blue-400 bg-blue-20 border-gray-900 dark:border-white transition': borderToggle}
       )}>
       <Link to={URL_HOME_PAGE} className='flex items-center justify-center gap-x-2 w-full cursor-pointer'>
-            <img
-              src={logo}
-              alt='ResDb View Logo'
-              className='h-35p w-35p'
-            />
+            <Logo className='h-35p w-35p' />
           <div className='text-blue-190 text-20p font-sans font-bold'>
             <span className="text-2xl font-bold text-gray-900 dark:text-white">ResView</span>
           </div>
