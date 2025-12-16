@@ -68,7 +68,8 @@ const PreSynthApp = () => {
           <Route path='*' element={<NotFound />} />
         </Routes>
       </Router>
-      {/* <ParticleWrapper init={init} particlesLoaded={particlesLoaded} /> */}
+      {/* <ParticleWrapper init={init} particlesLoaded={particlesLoaded} /> */ /** */}
+    
     </>
   );
 }
