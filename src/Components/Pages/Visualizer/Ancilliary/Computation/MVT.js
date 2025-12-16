@@ -1,6 +1,14 @@
 import { COLORS_MVT_GRAPH } from "../../../../../Constants";
 
 export const mvtGraphComputation = (transactionData, labelToggle = {}) => {
+    // Return empty data if transactionData is null, undefined, or empty
+    if (!transactionData || typeof transactionData !== 'object' || Object.keys(transactionData).length === 0) {
+        return { 
+            pointData: { 1: [], 2: [] }, 
+            maxPointData: { 1: 0, 2: 0 } 
+        };
+    }
+
     let startTime = 0;
     let firstPrepareTime = 0;
     let prePrepareTimes = [];
@@ -10,30 +18,46 @@ export const mvtGraphComputation = (transactionData, labelToggle = {}) => {
     let labelList = [];
 
     Object.keys(transactionData).forEach((key) => {
+        const replicaData = transactionData[key];
+        if (!replicaData) return;
+
         labelList.push("Replica " + key);
-        if (transactionData[key].primary_id !== transactionData[key].replica_id) {
-            prePrepareTimes.push(Math.floor(transactionData[key].propose_pre_prepare_time / 10000));
+        
+        if (replicaData.primary_id !== undefined && replicaData.replica_id !== undefined && 
+            replicaData.primary_id !== replicaData.replica_id && 
+            replicaData.propose_pre_prepare_time !== undefined) {
+            prePrepareTimes.push(Math.floor(replicaData.propose_pre_prepare_time / 10000));
         }
 
-        prepareTimes.push(Math.floor(transactionData[key].prepare_time / 10000));
+        if (replicaData.prepare_time !== undefined) {
+            prepareTimes.push(Math.floor(replicaData.prepare_time / 10000));
+        }
 
         let replicaPrepareTS = [];
         let replicaCommitTS = [];
 
-        transactionData[key]["prepare_message_timestamps"].map((time) =>
-            replicaPrepareTS.push(Math.floor(time / 10000))
-        );
+        if (replicaData.prepare_message_timestamps && Array.isArray(replicaData.prepare_message_timestamps)) {
+            replicaData.prepare_message_timestamps.forEach((time) => {
+                if (time !== undefined && time !== null) {
+                    replicaPrepareTS.push(Math.floor(time / 10000));
+                }
+            });
+        }
 
-        transactionData[key]["commit_message_timestamps"].map((time) =>
-            replicaCommitTS.push(Math.floor(time / 10000))
-        );
+        if (replicaData.commit_message_timestamps && Array.isArray(replicaData.commit_message_timestamps)) {
+            replicaData.commit_message_timestamps.forEach((time) => {
+                if (time !== undefined && time !== null) {
+                    replicaCommitTS.push(Math.floor(time / 10000));
+                }
+            });
+        }
 
         allPrepareTimes.push(replicaPrepareTS);
         allCommitTimes.push(replicaCommitTS);
     });
 
-    startTime = Math.min(...prePrepareTimes);
-    firstPrepareTime = Math.min(...prepareTimes);
+    startTime = prePrepareTimes.length > 0 ? Math.min(...prePrepareTimes) : 0;
+    firstPrepareTime = prepareTimes.length > 0 ? Math.min(...prepareTimes) : 0;
 
     let prepareChartData = [];
     let commitChartData = [];

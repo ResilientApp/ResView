@@ -73,12 +73,12 @@ const TransInfo = () => {
         let results = [false, false, false, false];
 
         for (let i = 0; i < 4; i++) {
-            //let port= parseInt(process.env.REACT_APP_DEFAULT_LOCAL_PORT)+i
-            //let url = process.env.REACT_APP_DEFAULT_LOCAL + String(port) + process.env.REACT_APP_REPLICA_STATUS_EP
             let port = parseInt(18501) + i
-            let url = "http://localhost:" + String(port) + "/get_status"
+            let url = process.env.REACT_APP_DEFAULT_LOCAL + String(port) + process.env.REACT_APP_REPLICA_STATUS_EP
+            console.log("Replica Status Endpoint: ", url)
             let promise = fetchWithTimeout(url)
                 .then(response => {
+                    console.log(response)
                     return response.text();
                 })
                 .then(body => {

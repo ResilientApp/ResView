@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkresview=self.webpackChunkresview||[]).push([[2330],{6746:(t,e,n)=>{n.d(e,{n:()=>i});var a=n(4409);class i{constructor(){this.quantity=2}load(t){if(!t)return;const e=t.quantity;void 0!==e&&(this.quantity=(0,a.DT)(e))}}},2330:(t,e,n)=>{n.d(e,{loadExternalRemoveInteraction:()=>a});n(6746);async function a(t){let e=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];await t.addInteractor("externalRemove",(async t=>{const{Remover:e}=await n.e(7788).then(n.bind(n,7788));return new e(t)}),e)}}}]);
-//# sourceMappingURL=2330.8fdab7e7.chunk.js.map

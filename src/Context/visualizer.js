@@ -1,5 +1,4 @@
 import React, { createContext, useEffect, useRef, useState } from "react";
-import { dummyData } from "../Components/Pages/Visualizer/Ancilliary/Data/data";
 import { computeTableData, computeTransInfo, truncData } from "../Components/Pages/Visualizer/Ancilliary/Computation/TransInfo";
 
 export const VizDataHistoryContext = createContext({
@@ -19,7 +18,7 @@ export const VizDataHistoryContext = createContext({
 
 export const VizDataHistoryProvider = ({ children }) => {
     const { Provider } = VizDataHistoryContext;
-    const [messageHistory, setMessageHistory] = useState(dummyData);
+    const [messageHistory, setMessageHistory] = useState({});
     const [currentTransaction, setCurrentTransaction] = useState(-1);
     const [replicaStatus, setReplicaStatus] = useState([false, false, false, false])
     const [primaryIndexVal, setPrimaryIndexVal] = useState(-1)
@@ -91,6 +90,13 @@ export const VizDataHistoryProvider = ({ children }) => {
     }
 
     useEffect(() => {
+        // Auto-select first transaction if currentTransaction is -1 and we have data
+        if (currentTransaction === -1 && Object.keys(messageHistory).length > 0) {
+            const firstTransaction = Object.keys(messageHistory).sort((a, b) => parseInt(a) - parseInt(b))[0];
+            setCurrentTransaction(parseInt(firstTransaction));
+            return;
+        }
+        
         setLoading(true);
         let results = [false, false, false, false];
         const { primaryIndex, currentStatus } = computeTransInfo(messageHistory, currentTransaction, results)
@@ -115,14 +121,16 @@ export const VizDataHistoryProvider = ({ children }) => {
         const fetchData = async (replicaPort) => {
             try {
                 let port = parseInt(18501) + replicaPort;
-                const response = await fetch("http://localhost:" + String(port) + "/consensus_data");
+                const response = await fetch(process.env.REACT_APP_DEFAULT_LOCAL + String(port) + "/consensus_data");
                 const newData = await response.json();
-                if(newData!==null){
-                    Object.keys(newData).map((key) => {
-                        if (!keyList.current[replicaPort].includes(key)) {
-                            keyList.current[replicaPort].push(key);
+                if(newData !== null && typeof newData === 'object'){
+                    Object.keys(newData).forEach((key) => {
+                        // Use a unique key per replica to track which messages we've seen
+                        const uniqueKey = `${replicaPort}_${key}`;
+                        if (!keyList.current[replicaPort].includes(uniqueKey)) {
+                            keyList.current[replicaPort].push(uniqueKey);
+                            // Add the message to allMessages, grouped by transaction number
                             addMessage(newData[key]);
-                            onMessage(allMessages.current, key);
                         }
                     });
                 }
@@ -141,7 +149,12 @@ export const VizDataHistoryProvider = ({ children }) => {
                     fetchPromises.push(fetchData(i));
                 }
 
-                await Promise.all(fetchPromises); 
+                await Promise.all(fetchPromises);
+                
+                // Update messageHistory once after all fetches complete
+                if (Object.keys(allMessages.current).length > 0) {
+                    onMessage(allMessages.current);
+                }
 
                 const elapsedTime = Date.now() - fetchStartTime;
 

@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkresview=self.webpackChunkresview||[]).push([[5817],{5817:(e,n,i)=>{async function s(e){let n=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];await e.addInteractor("particlesCollisions",(async e=>{const{Collider:n}=await i.e(656).then(i.bind(i,656));return new n(e)}),n)}i.d(n,{loadParticlesCollisionsInteraction:()=>s})}}]);
-//# sourceMappingURL=5817.d973a9f4.chunk.js.map

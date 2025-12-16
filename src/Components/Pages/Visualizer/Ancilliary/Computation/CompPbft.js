@@ -11,13 +11,18 @@ export const computeDataDetails = (data) => {
     let transactions = new Set();
     let primaryInd = -1;
 
+    // Return default values if data is null, undefined, or empty
+    if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+        return { primaryIndex: -1, transactions };
+    }
 
     for (const property in data) {
         transactions.add(parseInt(property));
     }
 
     for (const [key, value] of Object.entries(data)) {
-        if (value.primary_id === value.replica_id) {
+        if (value && value.primary_id !== undefined && value.replica_id !== undefined && 
+            value.primary_id === value.replica_id) {
             primaryInd = key;
         }
     }
@@ -39,12 +44,45 @@ export const generateConnections = (
 ) => {
     let points = {};
 
+    if (Object.keys(messageHistory).length === 0) {
+        // Return empty points structure if no data
+        let emptyPoints = {};
+        ACTION_TYPE_PBFT_GRAPH.forEach(
+            (action, index) =>
+            (emptyPoints = {
+                ...emptyPoints,
+                [action]: {
+                    color: `${theme ? COLORS_PBFT_GRAPH[index] : COLORS_PBFT_GRAPH_LIGHT[index]}`,
+                    start: [],
+                    end: [],
+                },
+            })
+        );
+        return { points: emptyPoints, primaryIndex: -1, yCoordToReplicas: {}, transactions: new Set() };
+    }
+
     if(!(transactionNumber in messageHistory)){
-        transactionNumber=Object.keys(messageHistory)[0]
+        transactionNumber = Object.keys(messageHistory)[0];
     }
 
     let currentData = messageHistory[transactionNumber];
-
+    
+    // Check if currentData is empty or invalid
+    if (!currentData || Object.keys(currentData).length === 0) {
+        let emptyPoints = {};
+        ACTION_TYPE_PBFT_GRAPH.forEach(
+            (action, index) =>
+            (emptyPoints = {
+                ...emptyPoints,
+                [action]: {
+                    color: `${theme ? COLORS_PBFT_GRAPH[index] : COLORS_PBFT_GRAPH_LIGHT[index]}`,
+                    start: [],
+                    end: [],
+                },
+            })
+        );
+        return { points: emptyPoints, primaryIndex: -1, yCoordToReplicas: {}, transactions: new Set() };
+    }
 
     const lineColors = theme ? COLORS_PBFT_GRAPH : COLORS_PBFT_GRAPH_LIGHT;
 
@@ -114,7 +152,13 @@ export const generateConnections = (
         }
 
         // PREPARE OBJECT 
-        let xVal = points.prePrepare.end[0][0].points.x;
+        let xVal = null;
+        if (points.prePrepare.end.length > 0 && points.prePrepare.end[0].length > 0) {
+            xVal = points.prePrepare.end[0][0].points.x;
+        } else {
+            // If no prePrepare points, use default x coordinate
+            xVal = xCoords[2] || 0;
+        }
         let currentPreparePoints = new Set();
 
         points.prePrepare.end.forEach((element, index) => {

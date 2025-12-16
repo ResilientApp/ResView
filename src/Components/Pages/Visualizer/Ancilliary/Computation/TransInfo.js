@@ -4,22 +4,56 @@ import { computeDataDetails } from "./CompPbft";
 let DEFAULT_REPLICA_STATUS = [false, false, false, false];
 
 const generateReplicaStatus = (data, defaultResult) => {
-    for (let [key, _] of Object.entries(data)) {
-        defaultResult[key - 1] = true;
+    if (!data) {
+        return [...defaultResult];
     }
-    return defaultResult;
+    const result = [...defaultResult];
+    for (let [key, _] of Object.entries(data)) {
+        const replicaIndex = parseInt(key) - 1;
+        if (replicaIndex >= 0 && replicaIndex < result.length) {
+            result[replicaIndex] = true;
+        }
+    }
+    return result;
 };
 
 export const computeTransInfo = (messageHistory, transactionNumber, status) => {
+    // Handle empty messageHistory
+    if (!messageHistory || Object.keys(messageHistory).length === 0) {
+        const emptyStatus = [...status];
+        return { 
+            primaryIndex: -1, 
+            transactions: new Set(), 
+            currentStatus: emptyStatus, 
+            currentData: {}, 
+            faultReplicas: 0, 
+            percentFaulty: 0 
+        };
+    }
+
     if(!(transactionNumber in messageHistory)){
-        transactionNumber=Object.keys(messageHistory)[0]
+        transactionNumber = Object.keys(messageHistory)[0];
     }
 
     const currentData = messageHistory[transactionNumber];
+    
+    // Handle undefined currentData
+    if (!currentData) {
+        const emptyStatus = [...status];
+        return { 
+            primaryIndex: -1, 
+            transactions: new Set(), 
+            currentStatus: emptyStatus, 
+            currentData: {}, 
+            faultReplicas: 0, 
+            percentFaulty: 0 
+        };
+    }
+
     const { primaryIndex, transactions } =
         computeDataDetails(currentData);
 
-    const currentStatus = generateReplicaStatus(currentData, status); 
+    const currentStatus = generateReplicaStatus(currentData || {}, status); 
 
     const faultReplicas = parseInt(Math.abs(TOTAL_NUMBER_OF_REPLICAS - transactions.size))
 

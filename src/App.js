@@ -1,12 +1,10 @@
 import { Suspense, useContext, useEffect, useState } from 'react';
-import { isMobile } from 'react-device-detect';
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Home from './Components/Pages/Home';
 import Team from './Components/Pages/Team';
 import Visualizer from './Components/Pages/Visualizer';
 import Loader from './Components/Shared/Loader';
 import NotFound from './Components/Shared/NotFound';
-import OnlyDesktop from './Components/Shared/OnlyDesktop';
 import ParticleWrapper from './Components/Shared/ParticleWrapper';
 import { URL_HOME_PAGE, URL_REROUTE_PAGE, URL_TEAM_PAGE, URL_VISUALIZER_PAGE } from './Constants';
 import { AllProviders } from './Context';
@@ -60,20 +58,16 @@ const PreSynthApp = () => {
 
   return (
     <>
-      {isMobile ? (
-        <OnlyDesktop />
-      ) : (
-        <Router>
-          <Routes>
-              <Route index element={<Navigate to={`${URL_REROUTE_PAGE}`} />} />
-              <Route path={`${URL_TEAM_PAGE}`} element={<Team />} />
-              <Route path={`${URL_HOME_PAGE}`} element={<Home loading={isParticleLoading} />} />
-              <Route path={`${URL_VISUALIZER_PAGE}`} element={<Visualizer />} />
-              
-            <Route path='*' element={<NotFound />} />
-          </Routes>
-        </Router>
-      )}
+      <Router>
+        <Routes>
+            <Route index element={<Navigate to={`${URL_REROUTE_PAGE}`} />} />
+            <Route path={`${URL_TEAM_PAGE}`} element={<Team />} />
+            <Route path={`${URL_HOME_PAGE}`} element={<Home loading={isParticleLoading} />} />
+            <Route path={`${URL_VISUALIZER_PAGE}`} element={<Visualizer />} />
+            
+          <Route path='*' element={<NotFound />} />
+        </Routes>
+      </Router>
       {/* <ParticleWrapper init={init} particlesLoaded={particlesLoaded} /> */}
     </>
   );

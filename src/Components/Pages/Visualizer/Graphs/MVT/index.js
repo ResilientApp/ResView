@@ -57,8 +57,8 @@ const Mvt = () => {
 
         const setFaulty = async (label) => {
             try {
-                let response = await fetch('http://localhost:1850' + String(label.charAt(label.length - 1)) + '/make_faulty');
-                console.log(response.body());
+                let response = await fetch(`${process.env.REACT_APP_DEFAULT_LOCAL}1850${String(label.charAt(label.length - 1))}/make_faulty`);
+                console.log(await response.text());
             } catch (error) {
                 console.error('Error toggling faulty:', error);
             }
@@ -77,17 +77,27 @@ const Mvt = () => {
     };
 
     useEffect(() => {
-        const transactionData = messageHistory[currentTransaction];
+        // Get transaction data - use first available if currentTransaction is -1
+        let transactionKey = currentTransaction === -1 ? null : String(currentTransaction);
+        if (!transactionKey && Object.keys(messageHistory).length > 0) {
+            transactionKey = Object.keys(messageHistory).sort((a, b) => parseInt(a) - parseInt(b))[0];
+        }
+        
+        const transactionData = transactionKey ? messageHistory[transactionKey] : null;
         const updatedLabelToggles = updateLabelToggles(replicaStatus);
         const updatedFaultToggles = updateFaultToggles(replicaStatus);
 
         setLabelToggle(updatedLabelToggles);
         setLabelToggleFaulty(updatedFaultToggles);
 
-        const { pointData, maxPointData } = mvtGraphComputation(transactionData, updatedLabelToggles);
-
-        setChartMaxData(maxPointData);
-        setMessageChartData(pointData);
+        if (transactionData && typeof transactionData === 'object' && Object.keys(transactionData).length > 0) {
+            const { pointData, maxPointData } = mvtGraphComputation(transactionData, updatedLabelToggles);
+            setChartMaxData(maxPointData);
+            setMessageChartData(pointData);
+        } else {
+            setChartMaxData({ 1: 0, 2: 0 });
+            setMessageChartData({ 1: [], 2: [] });
+        }
     }, [messageHistory, currentTransaction, replicaStatus]);
 
     const filteredChartData = {
