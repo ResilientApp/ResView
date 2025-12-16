@@ -74,11 +74,10 @@ const TransInfo = () => {
 
         for (let i = 0; i < 4; i++) {
             let port = parseInt(18501) + i
-            let url = process.env.REACT_APP_DEFAULT_LOCAL + String(port) + process.env.REACT_APP_REPLICA_STATUS_EP
-            console.log("Replica Status Endpoint: ", url)
+            //let url = process.env.REACT_APP_DEFAULT_LOCAL + String(port) + process.env.REACT_APP_REPLICA_STATUS_EP
+            let url = `https://dev-replica-${i+1}-stats.resilientdb.com` + process.env.REACT_APP_REPLICA_STATUS_EP
             let promise = fetchWithTimeout(url)
                 .then(response => {
-                    console.log(response)
                     return response.text();
                 })
                 .then(body => {

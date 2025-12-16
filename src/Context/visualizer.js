@@ -120,8 +120,13 @@ export const VizDataHistoryProvider = ({ children }) => {
     useEffect(() => {
         const fetchData = async (replicaPort) => {
             try {
-                let port = parseInt(18501) + replicaPort;
-                const response = await fetch(process.env.REACT_APP_DEFAULT_LOCAL + String(port) + "/consensus_data");
+                // replicaPort is 0-indexed (0, 1, 2, 3) → replica numbers (1, 2, 3, 4)
+                // Ports: replica-1 = 18501, replica-2 = 18502, replica-3 = 18503, replica-4 = 18504
+                const replicaNumber = replicaPort + 1;
+                const port = 18501 + replicaPort;
+                
+                const response = await fetch(`https://dev-replica-${replicaNumber}-stats.resilientdb.com/consensus_data`);
+                //const response = await fetch(process.env.REACT_APP_DEFAULT_LOCAL + String(port) + "/consensus_data");
                 const newData = await response.json();
                 if(newData !== null && typeof newData === 'object'){
                     Object.keys(newData).forEach((key) => {

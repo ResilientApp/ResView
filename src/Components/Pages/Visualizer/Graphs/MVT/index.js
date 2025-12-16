@@ -57,7 +57,9 @@ const Mvt = () => {
 
         const setFaulty = async (label) => {
             try {
-                let response = await fetch(`${process.env.REACT_APP_DEFAULT_LOCAL}1850${String(label.charAt(label.length - 1))}/make_faulty`);
+                let url = `https://dev-replica-${String(label.charAt(label.length - 1))}-stats.resilientdb.com/make_faulty`;
+                //let url = `${process.env.REACT_APP_DEFAULT_LOCAL}1850${String(label.charAt(label.length - 1))}/make_faulty`;
+                let response = await fetch(url);
                 console.log(await response.text());
             } catch (error) {
                 console.error('Error toggling faulty:', error);
