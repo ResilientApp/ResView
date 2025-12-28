@@ -89,8 +89,39 @@ export const VizDataHistoryProvider = ({ children }) => {
         }
     }
 
+    const [urlSearch, setUrlSearch] = useState(
+        typeof window !== 'undefined' ? window.location.search : ''
+    );
+
     useEffect(() => {
-        // Auto-select first transaction if currentTransaction is -1 and we have data
+        const handlePopState = () => {
+            setUrlSearch(window.location.search);
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const searchParams = new URLSearchParams(window.location.search);
+            const seqParam = searchParams.get('seq');
+            if (seqParam !== null) {
+                const seqNumber = parseInt(seqParam, 10);
+                if (!isNaN(seqNumber) && seqNumber >= 0 && seqNumber !== currentTransaction) {
+                    setCurrentTransaction(seqNumber);
+                }
+            }
+        }
+    }, [urlSearch, currentTransaction]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const currentSearch = window.location.search;
+            if (currentSearch !== urlSearch) {
+                setUrlSearch(currentSearch);
+            }
+        }
+
         if (currentTransaction === -1 && Object.keys(messageHistory).length > 0) {
             const firstTransaction = Object.keys(messageHistory).sort((a, b) => parseInt(a) - parseInt(b))[0];
             setCurrentTransaction(parseInt(firstTransaction));
@@ -115,59 +146,137 @@ export const VizDataHistoryProvider = ({ children }) => {
         setTruncatedData(smallData)
 
         setLoading(false);
-    }, [currentTransaction, messageHistory])
+    }, [currentTransaction, messageHistory, urlSearch])
 
     useEffect(() => {
-        const fetchData = async (replicaPort) => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const seqParam = searchParams.get('seq');
+        const hasSeqParam = seqParam !== null && seqParam !== '';
+        const seqNumber = hasSeqParam ? parseInt(seqParam, 10) : null;
+        const isValidSeq = hasSeqParam && !isNaN(seqNumber) && seqNumber >= 0;
+
+        const fetchSingleTransaction = async (replicaPort, seq) => {
             try {
-                // replicaPort is 0-indexed (0, 1, 2, 3) → replica numbers (1, 2, 3, 4)
-                // Ports: replica-1 = 18501, replica-2 = 18502, replica-3 = 18503, replica-4 = 18504
                 const replicaNumber = replicaPort + 1;
-                const port = 18501 + replicaPort;
+                const response = await fetch(`https://dev-replica-${replicaNumber}-stats.resilientdb.com/consensus_data/${seq}`);
                 
-                const response = await fetch(`https://dev-replica-${replicaNumber}-stats.resilientdb.com/consensus_data`);
-                //const response = await fetch(process.env.REACT_APP_DEFAULT_LOCAL + String(port) + "/consensus_data");
-                const newData = await response.json();
-                if(newData !== null && typeof newData === 'object'){
-                    Object.keys(newData).forEach((key) => {
-                        // Use a unique key per replica to track which messages we've seen
-                        const uniqueKey = `${replicaPort}_${key}`;
-                        if (!keyList.current[replicaPort].includes(uniqueKey)) {
-                            keyList.current[replicaPort].push(uniqueKey);
-                            // Add the message to allMessages, grouped by transaction number
-                            addMessage(newData[key]);
-                        }
-                    });
+                if (response.status === 404) {
+                    return null;
                 }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const newData = await response.json();
+                if (newData !== null && typeof newData === 'object' && String(seq) in newData) {
+                    return newData[String(seq)];
+                }
+                return null;
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error(`Error fetching data from replica ${replicaPort + 1}:`, error);
+                return null;
+            }
+        };
+
+        const fetchAllTransactions = async (replicaPort) => {
+            try {
+                const replicaNumber = replicaPort + 1;
+                const response = await fetch(`https://dev-replica-${replicaNumber}-stats.resilientdb.com/consensus_data`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const newData = await response.json();
+                if (newData !== null && typeof newData === 'object') {
+                    return newData;
+                }
+                return null;
+            } catch (error) {
+                console.error(`Error fetching data from replica ${replicaPort + 1}:`, error);
+                return null;
             }
         };
 
         const updateStatus = async () => {
             setLoading(true);
             const fetchStartTime = Date.now();
-
+            
             try {
-                const fetchPromises = [];
-                for (let i = 0; i < 4; i++) {
-                    fetchPromises.push(fetchData(i));
+                let newMessageHistory = {};
+                let hasData = false;
+
+                if (isValidSeq) {
+                    const fetchPromises = [];
+                    for (let i = 0; i < 4; i++) {
+                        fetchPromises.push(fetchSingleTransaction(i, seqNumber));
+                    }
+
+                    const results = await Promise.all(fetchPromises);
+                    
+                    results.forEach((message, replicaIndex) => {
+                        if (message !== null && message !== undefined) {
+                            hasData = true;
+                            const replicaId = replicaIndex + 1;
+                            const txnNumber = String(message.txn_number || seqNumber);
+                            
+                            if (!newMessageHistory[txnNumber]) {
+                                newMessageHistory[txnNumber] = {};
+                            }
+                            newMessageHistory[txnNumber][String(replicaId)] = message;
+                        }
+                    });
+
+                    if (hasData) {
+                        setMessageHistory(newMessageHistory);
+                        setCurrentTransaction(seqNumber);
+                    } else {
+                        setMessageHistory({});
+                        setData({});
+                        setTruncatedData({});
+                    }
+                } else {
+                    const fetchPromises = [];
+                    for (let i = 0; i < 4; i++) {
+                        fetchPromises.push(fetchAllTransactions(i));
+                    }
+
+                    const allData = await Promise.all(fetchPromises);
+                    
+                    allData.forEach((replicaData, replicaIndex) => {
+                        if (replicaData !== null && typeof replicaData === 'object') {
+                            hasData = true;
+                            
+                            Object.keys(replicaData).forEach((key) => {
+                                const uniqueKey = `${replicaIndex}_${key}`;
+                                if (!keyList.current[replicaIndex].includes(uniqueKey)) {
+                                    keyList.current[replicaIndex].push(uniqueKey);
+                                    addMessage(replicaData[key]);
+                                }
+                            });
+                        }
+                    });
+
+                    // Update messageHistory using the original onMessage approach (merges with existing)
+                    if (hasData && Object.keys(allMessages.current).length > 0) {
+                        onMessage(allMessages.current);
+                    }
                 }
 
-                await Promise.all(fetchPromises);
-                
-                // Update messageHistory once after all fetches complete
-                if (Object.keys(allMessages.current).length > 0) {
-                    onMessage(allMessages.current);
+                // For "fetch all" case, maintain the original timing behavior
+                if (!isValidSeq) {
+                    const elapsedTime = Date.now() - fetchStartTime;
+                    const remainingTime = 1000 - elapsedTime;
+                    if (remainingTime > 0) {
+                        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+                    }
                 }
-
-                const elapsedTime = Date.now() - fetchStartTime;
-
-                const remainingTime = 1000 - elapsedTime;
-
-                if (remainingTime > 0) {
-                    await new Promise((resolve) => setTimeout(resolve, remainingTime));
-                }
+            } catch (error) {
+                console.error("Error updating status:", error);
+                setMessageHistory({});
+                setData({});
+                setTruncatedData({});
             } finally {
                 setLoading(false);
             }
@@ -177,7 +286,7 @@ export const VizDataHistoryProvider = ({ children }) => {
         const interval = setInterval(updateStatus, 20000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [urlSearch]);
 
 
     return (

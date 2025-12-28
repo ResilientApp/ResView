@@ -146,7 +146,7 @@ const DataTable = ({ goToPbftGraph }) => {
 
     return (
         <>
-            <div className='mb-10'>
+            <div className='mt-10 mb-10'>
                 <FontVarTitle title={'Current Transactions'} />
             </div>
             <div className="relative overflow-x-auto rounded-md border-3p bg-blue-10 dark:border-solid border-gray-700 dark:border-gray-50 h-600p">
