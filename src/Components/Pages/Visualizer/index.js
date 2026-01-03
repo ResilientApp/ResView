@@ -7,6 +7,7 @@ import Footer from "../../Shared/Footer";
 import HRline from '../../Shared/HRline';
 import Mvt from "./Graphs/MVT";
 import Pbft from "./Graphs/PBFT";
+import Timeline from "./Graphs/Timeline";
 import DataTable from './Table';
 import TransInfo from './TransComps';
 import Analytics from "./TransComps/Components/AnalyticsItem";
@@ -19,10 +20,10 @@ const Visualizer = () => {
     const { isSidebarOpen } = useContext(SidebarToggleContext);
     const [searchParams] = useSearchParams();
 
-    const displayMvt = searchParams.get('mvt') === "true"
+    const displayMvt = (searchParams.get('mvt') === "true") || true
     const displayAnalytics = searchParams.get('analytics') === "true"
     const displayOverview = searchParams.get('overview') === "true"
-    const displayDataTable = searchParams.get('dataTable') === "true"
+    const displayDataTable = (searchParams.get('dataTable') === "true") || true
     const displaySidebar = searchParams.get('sidebar') === "true"
 
     let concurrentHeight = Math.floor(height / 2) + 200
@@ -57,6 +58,10 @@ const Visualizer = () => {
                         {displayAnalytics && <Analytics />}
                     </div>
                 </div>
+                <div className="my-8 px-24 w-full">
+                    <HRline />
+                </div>
+                <Timeline />
                 {displayMvt && (
                     <>
                         <div className="my-8 px-24 w-full">

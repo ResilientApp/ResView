@@ -1,11 +1,12 @@
 import classNames from 'classnames';
-import React, { Fragment, useContext, useState } from 'react';
+import React, { Fragment, useContext, useEffect, useState } from 'react';
 import { DATA_TABLE_NO_PRIMARY_EXISTS } from '../../../../Constants';
 import { VizDataHistoryContext } from '../../../../Context/visualizer';
 import { FontVarTitle } from '../../../Shared/Title';
 import { tableDataDummy } from '../Ancilliary/Data/data';
 import Carousel from './Components/Carousel';
 import { Tooltip } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 
 const TABLE_HEADERS = {
     1: [
@@ -39,7 +40,7 @@ export const CellValues = ({ value, loading, replicaDetailsKeys, replicaDetailsB
 
 const TableValues = ({ srNo, transaction, replicaDetailsKeys, loading, goToPbftGraph }) => {
 
-    const { changeCurrentTransaction } = useContext(VizDataHistoryContext)
+    const { changeCurrentTransaction, currentTransaction } = useContext(VizDataHistoryContext)
 
     const [open, setOpen] = useState(false);
 
@@ -66,7 +67,10 @@ const TableValues = ({ srNo, transaction, replicaDetailsKeys, loading, goToPbftG
                 onOpen={handleOpen}
                 title='SYNTHETIC DATA'
             >
-                <tr className={classNames({ 'cursor-pointer dark:hover:bg-gray-700 hover:bg-gray-400': !loading })} onClick={() => !loading && changeTransaction(transaction.transactionNumber)}>
+                <tr className={classNames({ 
+                    'cursor-pointer dark:hover:bg-gray-700 hover:bg-gray-400': !loading,
+                    'dark:bg-gray-700 bg-gray-400': !loading && transaction.transactionNumber === currentTransaction
+                })} onClick={() => !loading && changeTransaction(transaction.transactionNumber)}>
                     <CellValues
                         value={srNo}
                         loading={loading}
@@ -121,7 +125,8 @@ const TableValues = ({ srNo, transaction, replicaDetailsKeys, loading, goToPbftG
 
 const DataTable = ({ goToPbftGraph }) => {
 
-    const { data, loading } = useContext(VizDataHistoryContext)
+    const { data, loading, currentTransaction } = useContext(VizDataHistoryContext)
+    const [searchParams] = useSearchParams();
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
@@ -130,6 +135,23 @@ const DataTable = ({ goToPbftGraph }) => {
 
     const startRecord = (currentPage - 1) * itemsPerPage + 1;
     const endRecord = Math.min(currentPage * itemsPerPage, data ? Object.keys(data).length : 0);
+
+    // Navigate to page containing current transaction from URL
+    useEffect(() => {
+        if (data && currentTransaction >= 0 && Object.keys(data).length > 0) {
+            const transactionKeys = Object.keys(data).sort((a, b) => parseInt(a) - parseInt(b));
+            const transactionIndex = transactionKeys.indexOf(String(currentTransaction));
+            
+            if (transactionIndex >= 0) {
+                const page = Math.floor(transactionIndex / itemsPerPage) + 1;
+                const totalPagesCalc = Math.ceil(transactionKeys.length / itemsPerPage);
+                if (page !== currentPage && page <= totalPagesCalc && page >= 1) {
+                    setCurrentPage(page);
+                }
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentTransaction, data]);
 
     const handleChangePage = (direction) => {
         setCurrentPage((prevPage) => {

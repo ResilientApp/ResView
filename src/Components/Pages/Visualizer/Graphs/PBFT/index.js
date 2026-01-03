@@ -83,8 +83,18 @@ const Pbft = () => {
         d3.select(faultyReplicasLabelRef.current).selectAll("*").remove();
     };
 
+    const clearBaseGraph = () => {
+        d3.select(graphRef.current).selectAll("*").remove();
+    };
+
+    const clearAnimationLayers = () => {
+        d3.select(lineRef.current).selectAll("*").remove();
+        d3.select(primaryLabelRef.current).selectAll("*").remove();
+        d3.select(faultyReplicasLabelRef.current).selectAll("*").remove();
+    };
+
     const debouncedRender = useCallback(() => {
-        clearSVGs();
+        clearBaseGraph();
 
         const { width, height } = dimensions;
 
@@ -206,7 +216,11 @@ const Pbft = () => {
             return labelText;
         });
 
-        if (!clear) {
+        if (clear) {
+            clearAnimationLayers();
+        }
+
+        if (playing && !clear) {
 
             let primaryLabelSVG;
 
@@ -385,6 +399,38 @@ const Pbft = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [speed, currentTransaction, height, width])
 
+    useEffect(() => {
+        const scrollToPbft = () => {
+            const hash = window.location.hash;
+            // Handle both #pbft and #pbft?seq=153 formats
+            if (hash === '#pbft' || hash.startsWith('#pbft')) {
+                const element = document.getElementById('pbft');
+                if (element) {
+                    setTimeout(() => {
+                        element.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
+                    }, 100);
+                }
+            }
+        };
+
+        // Handle initial load
+        scrollToPbft();
+
+        // Handle hash changes
+        const handleHashChange = () => {
+            scrollToPbft();
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+        };
+    }, []);
+
     const onClear = () => {
         changeClear(true);
         setPlaying(false);
@@ -395,12 +441,25 @@ const Pbft = () => {
         setPlaying(true);
     }
 
+    const onPause = () => {
+        setPlaying(false);
+    }
+
+    const onTogglePlayPause = () => {
+        if (playing) {
+            onPause();
+        } else {
+            onPlay();
+        }
+    }
+
     const animationSpeedChange = (value) => changeSpeed(value);
 
     const color = theme && clear ? 'gray' : theme && !clear ? 'white' : !theme && clear ? 'gray' : 'black';
 
     return (
-        <GraphContainer title={'Practical Byzantine Fault Tolerance'} heightBig>
+        <div id="pbft" className="scroll-mt-20 w-full">
+            <GraphContainer title={'Practical Byzantine Fault Tolerance'} heightBig>
             <div className="flex items-center justify-around w-full flex-row mt-8">
                 <div className="basis-1/4">
                     {doesPrimaryExist.current === -1 && (
@@ -410,8 +469,8 @@ const Pbft = () => {
                     )}
                 </div>
                 <div className="flex items-center justify-center gap-x-16 basis-1/2">
-                    <IconButtons title={!clear ? 'Playing' : 'Play'} onClick={() => onPlay()} disabled={!clear}>
-                        <Icon path={!clear ? pauseIcon : playIcon} viewBox={'0 0 384 512'} height={'11px'} fill={color} />
+                    <IconButtons title={playing ? 'Pause' : 'Play'} onClick={onTogglePlayPause} disabled={clear}>
+                        <Icon path={playing ? pauseIcon : playIcon} viewBox={'0 0 384 512'} height={'11px'} fill={color} />
                     </IconButtons>
                     {playing && (
                         <DropDownButtons selected={speed} elements={['1x', '0.5x', '2x']} onClick={animationSpeedChange} />
@@ -433,6 +492,7 @@ const Pbft = () => {
                 )}
             </div>
         </GraphContainer>
+        </div>
     );
 };
 

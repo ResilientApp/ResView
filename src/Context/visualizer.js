@@ -43,6 +43,16 @@ export const VizDataHistoryProvider = ({ children }) => {
         setCurrentTransaction(value)
         const smallData = truncData(data, value);
         setTruncatedData(smallData)
+        
+        // Update URL with seq parameter, preserving hash
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.set('seq', value);
+            const newUrl = url.pathname + url.search + url.hash;
+            window.history.pushState({}, '', newUrl);
+            setUrlSearch(url.search);
+        }
+        
         setLoading(false);
     }   
 
@@ -103,8 +113,19 @@ export const VizDataHistoryProvider = ({ children }) => {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const searchParams = new URLSearchParams(window.location.search);
-            const seqParam = searchParams.get('seq');
+            // Check query string first (normal format: ?seq=153#timeline)
+            let searchParams = new URLSearchParams(window.location.search);
+            let seqParam = searchParams.get('seq');
+            
+            // If not in query string, check hash fragment (format: #timeline?seq=153)
+            if (seqParam === null && window.location.hash) {
+                const hashParts = window.location.hash.split('?');
+                if (hashParts.length > 1) {
+                    searchParams = new URLSearchParams(hashParts[1]);
+                    seqParam = searchParams.get('seq');
+                }
+            }
+            
             if (seqParam !== null) {
                 const seqNumber = parseInt(seqParam, 10);
                 if (!isNaN(seqNumber) && seqNumber >= 0 && seqNumber !== currentTransaction) {
@@ -149,8 +170,19 @@ export const VizDataHistoryProvider = ({ children }) => {
     }, [currentTransaction, messageHistory, urlSearch])
 
     useEffect(() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        const seqParam = searchParams.get('seq');
+        // Check query string first (normal format: ?seq=153#timeline)
+        let searchParams = new URLSearchParams(window.location.search);
+        let seqParam = searchParams.get('seq');
+        
+        // If not in query string, check hash fragment (format: #timeline?seq=153)
+        if (seqParam === null && window.location.hash) {
+            const hashParts = window.location.hash.split('?');
+            if (hashParts.length > 1) {
+                searchParams = new URLSearchParams(hashParts[1]);
+                seqParam = searchParams.get('seq');
+            }
+        }
+        
         const hasSeqParam = seqParam !== null && seqParam !== '';
         const seqNumber = hasSeqParam ? parseInt(seqParam, 10) : null;
         const isValidSeq = hasSeqParam && !isNaN(seqNumber) && seqNumber >= 0;
