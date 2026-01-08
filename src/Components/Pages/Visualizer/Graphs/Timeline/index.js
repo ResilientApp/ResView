@@ -7,14 +7,18 @@ const Timeline = () => {
     const { currentTransaction } = useContext(VizDataHistoryContext);
     const { theme } = useContext(ThemeContext);
     const [timelineData, setTimelineData] = useState({});
+    const [consensusData, setConsensusData] = useState({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedReplica, setSelectedReplica] = useState(1);
+    const [hasTimelineData, setHasTimelineData] = useState(false);
 
     useEffect(() => {
         const fetchAllTimelineData = async () => {
             if (currentTransaction < 0) {
                 setTimelineData({});
+                setConsensusData({});
+                setHasTimelineData(false);
                 return;
             }
 
@@ -23,8 +27,11 @@ const Timeline = () => {
 
             const replicas = [1, 2, 3, 4];
             const dataByReplica = {};
-            let hasData = false;
+            const consensusDataByReplica = {};
+            let hasTimeline = false;
+            let hasConsensus = false;
 
+            // First, try to fetch timeline data
             await Promise.all(
                 replicas.map(async (replicaNum) => {
                     try {
@@ -34,8 +41,11 @@ const Timeline = () => {
 
                         if (response.ok) {
                             const data = await response.json();
-                            dataByReplica[replicaNum] = data;
-                            hasData = true;
+                            // Check if timeline array exists and has data
+                            if (data.timeline && Array.isArray(data.timeline) && data.timeline.length > 0) {
+                                dataByReplica[replicaNum] = data;
+                                hasTimeline = true;
+                            }
                         }
                     } catch (err) {
                         // Silently skip failed replicas
@@ -43,14 +53,80 @@ const Timeline = () => {
                 })
             );
 
-            if (!hasData) {
-                setError("No timeline data found from any replica");
+            // If no timeline data, fall back to consensus_data endpoint
+            if (!hasTimeline) {
+                await Promise.all(
+                    replicas.map(async (replicaNum) => {
+                        try {
+                            const response = await fetch(
+                                `https://dev-replica-${replicaNum}-stats.resilientdb.com/consensus_data/${currentTransaction}`
+                            );
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                // Handle both formats:
+                                // 1. Direct data object (when seq is in URL path)
+                                // 2. Nested object with sequence number as key (when fetching all)
+                                let txnData = null;
+                                const txnKey = String(currentTransaction);
+                                
+                                if (data && typeof data === 'object') {
+                                    // Check if it's direct data (has timeline_events or txn_number)
+                                    if (data.timeline_events || data.txn_number === currentTransaction) {
+                                        txnData = data;
+                                    } 
+                                    // Check if it's nested format
+                                    else if (txnKey in data) {
+                                        txnData = data[txnKey];
+                                    }
+                                }
+                                
+                                if (txnData && txnData.timeline_events && Array.isArray(txnData.timeline_events) && txnData.timeline_events.length > 0) {
+                                    // Transform new format to old format for compatibility
+                                    const transformedData = {
+                                        timeline: txnData.timeline_events.map(event => ({
+                                            timestamp: event.timestamp,
+                                            phase: event.phase,
+                                            sender_id: event.sender_id
+                                        })),
+                                        transaction_details: {
+                                            txn_number: txnData.txn_number,
+                                            txn_commands: txnData.txn_commands,
+                                            txn_keys: txnData.txn_keys,
+                                            txn_values: txnData.txn_values,
+                                            propose_pre_prepare_time: txnData.propose_pre_prepare_time,
+                                            prepare_time: txnData.prepare_time,
+                                            commit_time: txnData.commit_time,
+                                            execution_time: txnData.execution_time
+                                        },
+                                        txn_number: txnData.txn_number
+                                    };
+                                    dataByReplica[replicaNum] = transformedData;
+                                    hasTimeline = true;
+                                } else if (txnData) {
+                                    consensusDataByReplica[replicaNum] = txnData;
+                                    hasConsensus = true;
+                                }
+                            }
+                        } catch (err) {
+                            // Silently skip failed replicas
+                        }
+                    })
+                );
+            }
+
+            if (!hasTimeline && !hasConsensus) {
+                setError("No data found for this transaction");
             }
 
             setTimelineData(dataByReplica);
+            setConsensusData(consensusDataByReplica);
+            setHasTimelineData(hasTimeline);
             
             // Set first available replica as selected
-            const availableReplicas = Object.keys(dataByReplica).map(Number).sort((a, b) => a - b);
+            const availableReplicas = hasTimeline 
+                ? Object.keys(dataByReplica).map(Number).sort((a, b) => a - b)
+                : Object.keys(consensusDataByReplica).map(Number).sort((a, b) => a - b);
             if (availableReplicas.length > 0 && !availableReplicas.includes(selectedReplica)) {
                 setSelectedReplica(availableReplicas[0]);
             }
@@ -472,10 +548,15 @@ const Timeline = () => {
         );
     };
 
-    const availableReplicas = Object.keys(timelineData)
-        .map(Number)
-        .sort((a, b) => a - b);
+    const availableReplicas = hasTimelineData 
+        ? Object.keys(timelineData).map(Number).sort((a, b) => a - b)
+        : [];
     const currentData = timelineData[selectedReplica];
+
+    // Don't render timeline component if no timeline data exists (even if consensus_data exists)
+    if (!hasTimelineData && !loading) {
+        return null;
+    }
 
     const color = theme && loading ? "gray" : theme && !loading ? "white" : !theme && loading ? "gray" : "black";
     const borderColor = theme ? "border-gray-50" : "border-gray-700";

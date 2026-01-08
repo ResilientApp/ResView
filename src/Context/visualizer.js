@@ -201,8 +201,17 @@ export const VizDataHistoryProvider = ({ children }) => {
                 }
                 
                 const newData = await response.json();
-                if (newData !== null && typeof newData === 'object' && String(seq) in newData) {
-                    return newData[String(seq)];
+                // Handle new format: direct data object (not wrapped in sequence number key)
+                if (newData !== null && typeof newData === 'object') {
+                    // Check if it's direct data (has timeline_events or txn_number matching seq)
+                    if (newData.timeline_events || newData.txn_number === seq) {
+                        return newData;
+                    }
+                    // Check if it's old nested format
+                    const seqKey = String(seq);
+                    if (seqKey in newData) {
+                        return newData[seqKey];
+                    }
                 }
                 return null;
             } catch (error) {
@@ -240,33 +249,48 @@ export const VizDataHistoryProvider = ({ children }) => {
                 let hasData = false;
 
                 if (isValidSeq) {
-                    const fetchPromises = [];
-                    for (let i = 0; i < 4; i++) {
-                        fetchPromises.push(fetchSingleTransaction(i, seqNumber));
-                    }
-
-                    const results = await Promise.all(fetchPromises);
+                    // First check if data already exists in messageHistory
+                    const txnKey = String(seqNumber);
+                    const existingData = messageHistory[txnKey];
                     
-                    results.forEach((message, replicaIndex) => {
-                        if (message !== null && message !== undefined) {
-                            hasData = true;
-                            const replicaId = replicaIndex + 1;
-                            const txnNumber = String(message.txn_number || seqNumber);
-                            
-                            if (!newMessageHistory[txnNumber]) {
-                                newMessageHistory[txnNumber] = {};
-                            }
-                            newMessageHistory[txnNumber][String(replicaId)] = message;
-                        }
-                    });
-
-                    if (hasData) {
-                        setMessageHistory(newMessageHistory);
+                    if (existingData && Object.keys(existingData).length > 0) {
+                        // Data already exists, just set the current transaction
                         setCurrentTransaction(seqNumber);
+                        hasData = true;
                     } else {
-                        setMessageHistory({});
-                        setData({});
-                        setTruncatedData({});
+                        // Data doesn't exist, fetch from individual endpoint
+                        const fetchPromises = [];
+                        for (let i = 0; i < 4; i++) {
+                            fetchPromises.push(fetchSingleTransaction(i, seqNumber));
+                        }
+
+                        const results = await Promise.all(fetchPromises);
+                        
+                        results.forEach((message, replicaIndex) => {
+                            if (message !== null && message !== undefined) {
+                                hasData = true;
+                                const replicaId = replicaIndex + 1;
+                                const txnNumber = String(message.txn_number || seqNumber);
+                                
+                                if (!newMessageHistory[txnNumber]) {
+                                    newMessageHistory[txnNumber] = {};
+                                }
+                                newMessageHistory[txnNumber][String(replicaId)] = message;
+                            }
+                        });
+
+                        if (hasData) {
+                            // Merge with existing messageHistory instead of replacing
+                            setMessageHistory(prev => ({
+                                ...prev,
+                                ...newMessageHistory
+                            }));
+                            setCurrentTransaction(seqNumber);
+                        } else {
+                            setMessageHistory({});
+                            setData({});
+                            setTruncatedData({});
+                        }
                     }
                 } else {
                     const fetchPromises = [];
