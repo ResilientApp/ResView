@@ -1,5 +1,10 @@
 import React, { createContext, useEffect, useRef, useState } from "react";
 import { computeTableData, computeTransInfo, truncData } from "../Components/Pages/Visualizer/Ancilliary/Computation/TransInfo";
+import { 
+    fetchCommitmentData, 
+    fetchAllTransactionsFromReplica, 
+    getConfig 
+} from "../utils/commitmentDataFetcher";
 
 export const VizDataHistoryContext = createContext({
     messageHistory: {},
@@ -187,100 +192,45 @@ export const VizDataHistoryProvider = ({ children }) => {
         const seqNumber = hasSeqParam ? parseInt(seqParam, 10) : null;
         const isValidSeq = hasSeqParam && !isNaN(seqNumber) && seqNumber >= 0;
 
-        const fetchSingleTransaction = async (replicaPort, seq) => {
-            try {
-                const replicaNumber = replicaPort + 1;
-                const response = await fetch(`https://dev-replica-${replicaNumber}-stats.resilientdb.com/consensus_data/${seq}`);
-                
-                if (response.status === 404) {
-                    return null;
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const newData = await response.json();
-                // Handle new format: direct data object (not wrapped in sequence number key)
-                if (newData !== null && typeof newData === 'object') {
-                    // Check if it's direct data (has timeline_events or txn_number matching seq)
-                    if (newData.timeline_events || newData.txn_number === seq) {
-                        return newData;
-                    }
-                    // Check if it's old nested format
-                    const seqKey = String(seq);
-                    if (seqKey in newData) {
-                        return newData[seqKey];
-                    }
-                }
-                return null;
-            } catch (error) {
-                console.error(`Error fetching data from replica ${replicaPort + 1}:`, error);
-                return null;
-            }
-        };
-
-        const fetchAllTransactions = async (replicaPort) => {
-            try {
-                const replicaNumber = replicaPort + 1;
-                const response = await fetch(`https://dev-replica-${replicaNumber}-stats.resilientdb.com/consensus_data`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const newData = await response.json();
-                if (newData !== null && typeof newData === 'object') {
-                    return newData;
-                }
-                return null;
-            } catch (error) {
-                console.error(`Error fetching data from replica ${replicaPort + 1}:`, error);
-                return null;
-            }
-        };
+        // Note: fetchCommitmentData now handles both BPF and legacy modes
+        // based on REACT_APP_BPF_TRACE_AGENT flag
 
         const updateStatus = async () => {
             setLoading(true);
             const fetchStartTime = Date.now();
+            const config = getConfig();
             
             try {
                 let newMessageHistory = {};
                 let hasData = false;
 
                 if (isValidSeq) {
-                    // First check if data already exists in messageHistory
                     const txnKey = String(seqNumber);
                     const existingData = messageHistory[txnKey];
                     
                     if (existingData && Object.keys(existingData).length > 0) {
-                        // Data already exists, just set the current transaction
                         setCurrentTransaction(seqNumber);
                         hasData = true;
                     } else {
-                        // Data doesn't exist, fetch from individual endpoint
-                        const fetchPromises = [];
-                        for (let i = 0; i < 4; i++) {
-                            fetchPromises.push(fetchSingleTransaction(i, seqNumber));
+                        console.debug(`Fetching commitment data for seq ${seqNumber} (BPF Agent ${config.bpfAgentEnabled ? 'ENABLED' : 'DISABLED'})`);
+                        
+                        const replicaDataMap = await fetchCommitmentData(seqNumber);
+                        
+                        if (replicaDataMap) {
+                            Object.entries(replicaDataMap).forEach(([replicaId, replicaData]) => {
+                                if (replicaData !== null && replicaData !== undefined) {
+                                    hasData = true;
+                                    const txnNumber = String(replicaData.txn_number || seqNumber);
+                                    
+                                    if (!newMessageHistory[txnNumber]) {
+                                        newMessageHistory[txnNumber] = {};
+                                    }
+                                    newMessageHistory[txnNumber][String(replicaId)] = replicaData;
+                                }
+                            });
                         }
 
-                        const results = await Promise.all(fetchPromises);
-                        
-                        results.forEach((message, replicaIndex) => {
-                            if (message !== null && message !== undefined) {
-                                hasData = true;
-                                const replicaId = replicaIndex + 1;
-                                const txnNumber = String(message.txn_number || seqNumber);
-                                
-                                if (!newMessageHistory[txnNumber]) {
-                                    newMessageHistory[txnNumber] = {};
-                                }
-                                newMessageHistory[txnNumber][String(replicaId)] = message;
-                            }
-                        });
-
                         if (hasData) {
-                            // Merge with existing messageHistory instead of replacing
                             setMessageHistory(prev => ({
                                 ...prev,
                                 ...newMessageHistory
@@ -293,34 +243,57 @@ export const VizDataHistoryProvider = ({ children }) => {
                         }
                     }
                 } else {
-                    const fetchPromises = [];
-                    for (let i = 0; i < 4; i++) {
-                        fetchPromises.push(fetchAllTransactions(i));
-                    }
-
-                    const allData = await Promise.all(fetchPromises);
+                    console.debug(`Fetching latest commitment data (BPF Agent ${config.bpfAgentEnabled ? 'ENABLED' : 'DISABLED'})`);
                     
-                    allData.forEach((replicaData, replicaIndex) => {
-                        if (replicaData !== null && typeof replicaData === 'object') {
-                            hasData = true;
-                            
-                            Object.keys(replicaData).forEach((key) => {
-                                const uniqueKey = `${replicaIndex}_${key}`;
-                                if (!keyList.current[replicaIndex].includes(uniqueKey)) {
-                                    keyList.current[replicaIndex].push(uniqueKey);
-                                    addMessage(replicaData[key]);
+                    const replicaDataMap = await fetchCommitmentData(undefined);
+                    
+                    if (replicaDataMap) {
+                        Object.entries(replicaDataMap).forEach(([replicaId, replicaData]) => {
+                            if (replicaData !== null && replicaData !== undefined) {
+                                hasData = true;
+                                const txnNumber = String(replicaData.txn_number);
+                                
+                                if (!newMessageHistory[txnNumber]) {
+                                    newMessageHistory[txnNumber] = {};
                                 }
-                            });
+                                newMessageHistory[txnNumber][String(replicaId)] = replicaData;
+                            }
+                        });
+                        
+                        if (hasData) {
+                            setMessageHistory(prev => ({
+                                ...prev,
+                                ...newMessageHistory
+                            }));
                         }
-                    });
+                    } else if (!config.bpfAgentEnabled) {
+                        const fetchPromises = [];
+                        for (let i = 0; i < 4; i++) {
+                            fetchPromises.push(fetchAllTransactionsFromReplica(i));
+                        }
 
-                    // Update messageHistory using the original onMessage approach (merges with existing)
-                    if (hasData && Object.keys(allMessages.current).length > 0) {
-                        onMessage(allMessages.current);
+                        const allData = await Promise.all(fetchPromises);
+                        
+                        allData.forEach((replicaData, replicaIndex) => {
+                            if (replicaData !== null && typeof replicaData === 'object') {
+                                hasData = true;
+                                
+                                Object.keys(replicaData).forEach((key) => {
+                                    const uniqueKey = `${replicaIndex}_${key}`;
+                                    if (!keyList.current[replicaIndex].includes(uniqueKey)) {
+                                        keyList.current[replicaIndex].push(uniqueKey);
+                                        addMessage(replicaData[key]);
+                                    }
+                                });
+                            }
+                        });
+
+                        if (hasData && Object.keys(allMessages.current).length > 0) {
+                            onMessage(allMessages.current);
+                        }
                     }
                 }
 
-                // For "fetch all" case, maintain the original timing behavior
                 if (!isValidSeq) {
                     const elapsedTime = Date.now() - fetchStartTime;
                     const remainingTime = 1000 - elapsedTime;
