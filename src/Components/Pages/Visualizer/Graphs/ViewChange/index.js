@@ -171,6 +171,39 @@ const ViewChange = () => {
     };
   }, []);
 
+  // Handle scroll-to-hash functionality
+  useEffect(() => {
+    const scrollToViewChange = () => {
+      const hash = window.location.hash;
+      // Only scroll if hash is exactly #viewchange or starts with #viewchange?
+      if (hash === '#viewchange' || hash === '#view-change' || hash.startsWith('#viewchange?') || hash.startsWith('#view-change?')) {
+        const element = document.getElementById('view-change');
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }, 100);
+        }
+      }
+    };
+
+    // Handle initial load
+    scrollToViewChange();
+
+    // Handle hash changes
+    const handleHashChange = () => {
+      scrollToViewChange();
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   const clearBaseGraph = () => {
     d3.select(graphRef.current).selectAll("*").remove();
   };
