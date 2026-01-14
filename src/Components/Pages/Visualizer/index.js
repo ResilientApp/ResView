@@ -3,10 +3,12 @@ import React, { useContext } from "react";
 import classNames from "classnames";
 import { DATA_TABLE_DELAY } from "../../../Constants";
 import { SidebarToggleContext } from "../../../Context/sidebarToggle";
+import { VizDataHistoryContext } from "../../../Context/visualizer";
 import Footer from "../../Shared/Footer";
 import HRline from '../../Shared/HRline';
 import Mvt from "./Graphs/MVT";
 import Pbft from "./Graphs/PBFT";
+import ViewChange from "./Graphs/ViewChange";
 import Timeline from "./Graphs/Timeline";
 import DataTable from './Table';
 import TransInfo from './TransComps';
@@ -18,6 +20,7 @@ import { useSearchParams } from "react-router-dom";
 const Visualizer = () => {
     const [_, height] = useWindowSize()
     const { isSidebarOpen } = useContext(SidebarToggleContext);
+    const { viewChangeData } = useContext(VizDataHistoryContext);
     const [searchParams] = useSearchParams();
 
     const displayMvt = (searchParams.get('mvt') === "true") || true
@@ -25,6 +28,7 @@ const Visualizer = () => {
     const displayOverview = searchParams.get('overview') === "true"
     const displayDataTable = (searchParams.get('dataTable') === "true") || true
     const displaySidebar = searchParams.get('sidebar') === "true"
+    const displayViewChange = (searchParams.get('viewchange') === "false") ? false : true
 
     let concurrentHeight = Math.floor(height / 2) + 200
 
@@ -62,9 +66,17 @@ const Visualizer = () => {
                     <HRline />
                 </div>
                 <Timeline />
-                {displayMvt && (
+                {displayViewChange && (
                     <>
                         <div className="my-8 px-24 w-full">
+                            <HRline />
+                        </div>
+                        <ViewChange viewChangeData={viewChangeData} />
+                    </>
+                )}
+                {displayMvt && (
+                    <>
+                        <div className={classNames("px-24 w-full", displayViewChange ? "my-16" : "my-8 mt-32")}>
                             <HRline />
                         </div>
                         <Mvt />

@@ -187,6 +187,59 @@ export const fetchAllTransactionsFromReplica = async (replicaPort) => {
 };
 
 /**
+ * Fetch view change data from the unified BPF Trace Agent endpoint
+ * Returns data with all replicas' view change timeline in a single response
+ * 
+ * @param {number|undefined} view - View number. If undefined, fetches the latest view change.
+ * @returns {Promise<Object>} Object with view change data for each replica, keyed by replica_id
+ */
+export const fetchViewChangeData = async (view) => {
+  try {
+    // Build URL: with view for specific view change, without for latest
+    const isValidView = view !== undefined && view !== null && !Number.isNaN(view);
+    const url = isValidView 
+      ? `${BPF_AGENT_URL}/bpf/viewchange/${view}`
+      : `${BPF_AGENT_URL}/bpf/viewchange`;
+    
+    const response = await fetch(url);
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // The BPF endpoint returns data in format: { view: number, replicas: { "1": {...}, "2": {...}, ... } }
+    // Transform it to match the expected format: { "1": {...}, "2": {...}, ... }
+    if (data && data.replicas && typeof data.replicas === 'object') {
+      return data.replicas;
+    }
+
+    return data;
+  } catch (error) {
+    const errorMsg = error?.message || String(error);
+    const isCorsError = errorMsg.includes('CORS') || errorMsg.includes('Access-Control');
+    
+    if (isCorsError) {
+      console.warn(
+        `CORS Error accessing BPF Agent at ${BPF_AGENT_URL} for view change data. ` +
+        `Details: ${errorMsg}`
+      );
+    } else {
+      const isValidView = view !== undefined && view !== null && !Number.isNaN(view);
+      const viewInfo = isValidView ? ` for view ${view}` : ` for latest view`;
+      console.error(`Error fetching view change data from BPF Agent${viewInfo}:`, error);
+    }
+    
+    return null;
+  }
+};
+
+/**
  * Get the current configuration status
  * 
  * @returns {Object} Configuration object with enabled status and URL

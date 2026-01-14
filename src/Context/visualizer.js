@@ -3,6 +3,7 @@ import { computeTableData, computeTransInfo, truncData } from "../Components/Pag
 import { 
     fetchCommitmentData, 
     fetchAllTransactionsFromReplica, 
+    fetchViewChangeData,
     getConfig 
 } from "../utils/commitmentDataFetcher";
 
@@ -19,6 +20,7 @@ export const VizDataHistoryContext = createContext({
     totalHistoryLength: 0,
     noPrimaryCount: 0,
     loading: false,
+    viewChangeData: null,
 });
 
 export const VizDataHistoryProvider = ({ children }) => {
@@ -27,6 +29,7 @@ export const VizDataHistoryProvider = ({ children }) => {
     const [currentTransaction, setCurrentTransaction] = useState(-1);
     const [replicaStatus, setReplicaStatus] = useState([false, false, false, false])
     const [primaryIndexVal, setPrimaryIndexVal] = useState(-1)
+    const [viewChangeData, setViewChangeData] = useState(null);
     const [data, setData] = useState({});    
     const [truncatedData, setTruncatedData] = useState({});    
     const [totalPercentFaulty, setTotalPercentFaulty] = useState(0);
@@ -317,6 +320,30 @@ export const VizDataHistoryProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, [urlSearch]);
 
+    // Fetch view change data
+    useEffect(() => {
+        const fetchViewChangeInfo = async () => {
+            try {
+                const vcData = await fetchViewChangeData(undefined);
+                if (vcData) {
+                    setViewChangeData(vcData);
+                } else {
+                    console.log("No view change data available");
+                    setViewChangeData(null);
+                }
+            } catch (error) {
+                console.error("Error fetching view change data:", error);
+                setViewChangeData(null);
+            }
+        };
+
+        // Fetch on mount and periodically
+        fetchViewChangeInfo();
+        const vcInterval = setInterval(fetchViewChangeInfo, 30000); // Every 30 seconds
+
+        return () => clearInterval(vcInterval);
+    }, []);
+
 
     return (
         <Provider value={
@@ -331,7 +358,8 @@ export const VizDataHistoryProvider = ({ children }) => {
                 totalHistoryLength,
                 noPrimaryCount,
                 loading,
-                truncatedData
+                truncatedData,
+                viewChangeData
             }
         }>
             {children}
