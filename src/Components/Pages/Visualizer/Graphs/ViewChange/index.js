@@ -312,13 +312,18 @@ const ViewChange = () => {
         .classed("items-center", true);
 
       // ViewChange: All-to-all (quadratic pattern) - ANIMATED
+      // Only animate from replicas that actually sent ViewChange messages
+      const viewChangeSenders = displayData?.replicas ? Object.entries(displayData.replicas)
+        .filter(([_, data]) => data.view_change_send_time !== null)
+        .map(([id, _]) => parseInt(id)) : [1, 3, 4];
+      
       let delayIndex = 0;
       for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-          // Only animate if both replicas are active
+          // Only animate if sender replica actually sent ViewChange and receiver is active
           const replicaI = i + 1;
           const replicaJ = j + 1;
-          if (i !== j && activeReplicaIds.includes(replicaI) && activeReplicaIds.includes(replicaJ) && xCoords[0] && xCoords[1]) {
+          if (i !== j && viewChangeSenders.includes(replicaI) && activeReplicaIds.includes(replicaJ) && xCoords[0] && xCoords[1]) {
             const startPoint = xCoords[0].find(p => p.replica === i);
             const endPoint = xCoords[1].find(p => p.replica === j);
             
