@@ -378,7 +378,7 @@ const ViewChange = () => {
 
       // Compute quorum timing so we can ensure new-view (green) animations wait until quorum
       const numReplicas = activeReplicaIds.length;
-      const quorumSize = Math.floor(numReplicas / 2) + 1; // 2f+1
+      const quorumSize = Math.floor(numReplicas / 2); // 2f+1
       const quorumReachedDelay = newViewDelay + ((quorumSize - 1) * NEWVIEW_BUFFER) + (TRANSDURATION / 2);
 
       for (let j = 0; j < 4; j++) {
