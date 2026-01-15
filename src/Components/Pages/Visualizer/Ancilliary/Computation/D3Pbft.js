@@ -26,7 +26,7 @@ export const labelFaultyNode = (svg, label, relativeSpecialLabelFont) => {
     return svg;
 };
 
-export const connectionRender = (lineData, lineColor, dotColor, duration, delay, lineGen, svg, arrow) => {
+export const connectionRender = (lineData, lineColor, dotColor, duration, delay, lineGen, svg, arrow, tooltipText = "Message") => {
 
     const divID = 'tooltip_' + hash([lineData[0].x , lineData[0].y , lineData[1].x , lineData[1].y]);
 
@@ -35,18 +35,17 @@ export const connectionRender = (lineData, lineColor, dotColor, duration, delay,
         .attr("id", `${divID}`)
         .attr("stroke", lineColor)
         .attr("fill", "none")
-        .attr("stroke-width", 1)
+        .attr("stroke-width", 1.5)
         .attr("marker-end", `url(#arrow-&${arrow})`)
         .style("opacity", 0)
+        .style("cursor", "pointer")
 
     var tooltip = svg.append("foreignObject")
         .append("div")
         .attr("id", `#${divID}`)
         .attr("class", "tooltip")
         .style("opacity", 0)
-        .attr("class", "absolute")
-
-    var tooltipText = "Tooltip text here";
+        .attr("class", "absolute px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none")
 
     line.transition()
         .duration(duration / 2)

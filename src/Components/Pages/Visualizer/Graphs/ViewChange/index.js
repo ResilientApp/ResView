@@ -10,6 +10,23 @@ import { DropDownButtons, IconButtons } from "../../../../Shared/Buttons";
 import { Icon } from "../../../../Shared/Icon";
 import { connectionRender } from "../../Ancilliary/Computation/D3Pbft";
 
+// Add CSS keyframe animations
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  @keyframes pulse {
+    0% { r: 8px; opacity: 1; }
+    50% { r: 16px; opacity: 0.5; }
+    100% { r: 8px; opacity: 1; }
+  }
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+`;
+document.head.appendChild(styleSheet);
+
 const BPF_AGENT_URL = process.env.REACT_APP_BPF_TRACE_AGENT_URL || 'https://dev-bpf-agent.resilientdb.com';
 
 const NUMBER_OF_STEPS_VIEW_CHANGE = 2; 
@@ -298,6 +315,10 @@ const ViewChange = () => {
         .attr("stroke-dasharray", "5,10")
     );
 
+    const relativeLabelFont = Math.floor((height + width) / 120);
+    const relativeLabelYPos = Math.floor(relativeLabelFont / 2);
+    const relativeLabelXPos = relativeLabelYPos - 4;
+
     if (clear) {
       clearAnimationLayers();
     }
@@ -328,6 +349,11 @@ const ViewChange = () => {
             const endPoint = xCoords[1].find(p => p.replica === j);
             
             if (startPoint && endPoint) {
+              const senderData = displayData?.replicas?.[replicaI];
+              const viewNum = displayData?.view ?? "?";
+              const checkpoint = senderData?.checkpoint_seq ? ` (Seq: ${senderData.checkpoint_seq})` : "";
+              const tooltipMsg = `ViewChange: R${replicaI} → R${replicaJ} in View ${viewNum}${checkpoint}`;
+              
               connectionRender(
                 [startPoint, endPoint],
                 COLORS_VIEW_CHANGE[0],
@@ -336,7 +362,8 @@ const ViewChange = () => {
                 delayIndex * VIEWCHANGE_BUFFER,
                 lineGen,
                 lineSVG,
-                'viewchange'
+                'viewchange',
+                tooltipMsg
               );
               delayIndex++;
             }
@@ -348,32 +375,90 @@ const ViewChange = () => {
       const newPrimaryId = displayData?.replicas ? Object.values(displayData.replicas)[0]?.new_primary_id : null;
       const primaryIdx = newPrimaryId !== null ? newPrimaryId - 1 : 0;
       let newViewDelay = delayIndex * VIEWCHANGE_BUFFER + NEWVIEW_BUFFER;
+
+      // Compute quorum timing so we can ensure new-view (green) animations wait until quorum
+      const numReplicas = activeReplicaIds.length;
+      const quorumSize = Math.floor(numReplicas / 2) + 1; // 2f+1
+      const quorumReachedDelay = newViewDelay + ((quorumSize - 1) * NEWVIEW_BUFFER) + (TRANSDURATION / 2);
+
       for (let j = 0; j < 4; j++) {
         // Only animate if the receiving replica is active
         const replicaJ = j + 1;
         if (j !== primaryIdx && activeReplicaIds.includes(replicaJ) && xCoords[1] && xCoords[2]) {
           const startPoint = xCoords[1].find(p => p.replica === primaryIdx);
           const endPoint = xCoords[2].find(p => p.replica === j);
-          
+
           if (startPoint && endPoint) {
+            const viewNum = displayData?.view ?? "?";
+            const primaryData = displayData?.replicas?.[primaryIdx + 1];
+            const checkpoint = primaryData?.checkpoint_seq ? ` (Seq: ${primaryData.checkpoint_seq})` : "";
+            const tooltipMsg = `NewView: R${primaryIdx + 1} → R${replicaJ} in View ${viewNum}${checkpoint}`;
+
+            // Schedule new-view animation no earlier than quorumReachedDelay
+            const scheduledDelay = Math.max(newViewDelay + (j * NEWVIEW_BUFFER), quorumReachedDelay);
+
             connectionRender(
               [startPoint, endPoint],
               COLORS_VIEW_CHANGE[1],
               pointColorMode,
               TRANSDURATION,
-              newViewDelay + (j * NEWVIEW_BUFFER),
+              scheduledDelay,
               lineGen,
               lineSVG,
-              'newview'
+              'newview',
+              tooltipMsg
             );
           }
         }
       }
+
+      // Add quorum reached animation when 2f+1 messages reach new primary
+      // Find the position of the new primary in the NewView phase (xCoords[2])
+      const newPrimaryPointNewView = xCoords[1]?.find(p => p.replica === primaryIdx);
+      if (newPrimaryPointNewView && numReplicas >= quorumSize) {
+        // Only create the quorum visuals when quorum is actually reached — schedule creation
+        setTimeout(() => {
+          // Create pulsing circle animation for quorum reached
+          const quorumGroup = lineSVG.append("g");
+
+          // Animate circles pulsing at quorum point
+          for (let i = 0; i < 3; i++) {
+            quorumGroup
+              .append("circle")
+              .attr("cx", newPrimaryPointNewView.x)
+              .attr("cy", newPrimaryPointNewView.y)
+              .attr("r", 8)
+              .attr("fill", "none")
+              .attr("stroke", "#ffc107")
+              .attr("stroke-width", 2)
+              .style("animation", `pulse 1s ease-in-out ${i * 300}ms infinite`)
+              .attr("opacity", 1 - (i * 0.3));
+          }
+
+          // Add "quorum reached" label at the point
+          quorumGroup
+            .append("text")
+            .attr("x", newPrimaryPointNewView.x)
+            .attr("y", newPrimaryPointNewView.y - 15)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "10px")
+            .attr("font-weight", "bold")
+            .attr("fill", "#ffc107")
+            .text("quorum reached")
+            .style("animation", `fadeInOut 0.8s ease-in-out 0ms`);
+        }, quorumReachedDelay);
+      }
     }
 
-    const relativeLabelFont = Math.floor((height + width) / 120);
-    const relativeLabelYPos = Math.floor(relativeLabelFont / 2);
-    const relativeLabelXPos = relativeLabelYPos - 4;
+    // Get primary info
+    const newPrimaryId = displayData?.replicas ? Object.values(displayData.replicas)[0]?.new_primary_id : null;
+    let oldPrimaryId = displayData?.replicas ? Object.values(displayData.replicas)[0]?.old_primary_id : null;
+    
+    // If old_primary_id is null and we have a new_primary_id, calculate it using round-robin
+    // Pattern: new=1→old=4, new=2→old=1, new=3→old=2, new=4→old=3
+    if (oldPrimaryId === null && newPrimaryId !== null) {
+      oldPrimaryId = ((newPrimaryId - 2 + 4) % 4) + 1;
+    }
 
     // LABELS FOR EACH ACTION - RENDERED ON TOP
     labelsX.forEach((label) =>
@@ -386,15 +471,54 @@ const ViewChange = () => {
         .text(`${label.title}`)
     );
 
-    // LABELS FOR EACH NODE - RENDERED ON TOP
+    // LABELS FOR EACH NODE - RENDERED ON TOP with primary indicators
     labelsY.forEach((label, _) => {
-      svg
+      const replicaIdx = parseInt(Object.keys(yCoords)[_]);
+      const replicaId = replicaIdx + 1;
+      
+      // Create group for label
+      const labelGroup = svg.append("g");
+      
+      // Determine text color based on primary status
+      let textColor = colorMode;
+      
+      if (replicaId === newPrimaryId) {
+        textColor = "#4caf50";
+      } else if (replicaId === oldPrimaryId && oldPrimaryId !== null) {
+        textColor = "#ff9800";
+      }
+      
+      // Add the replica label text
+      labelGroup
         .append("text")
         .attr("transform", "translate(" + (label.x + relativeLabelXPos + 10) + " ," + label.y + ")")
         .attr("font-size", relativeLabelFont)
         .style("text-anchor", "middle")
         .text(`${label.title}`)
-        .attr("fill", colorMode);
+        .attr("fill", textColor)
+        .attr("font-weight", replicaId === newPrimaryId || replicaId === oldPrimaryId ? "bold" : "normal");
+      
+      // Add "new primary" label if this is the new primary
+      if (replicaId === newPrimaryId) {
+        labelGroup
+          .append("text")
+          .attr("transform", "translate(" + (label.x + relativeLabelXPos + 10) + " ," + (label.y + relativeLabelFont + 8) + ")")
+          .attr("font-size", Math.max(4, relativeLabelFont - 6))
+          .style("text-anchor", "middle")
+          .text("new primary")
+          .attr("fill", "#4caf50");
+      }
+      
+      // Add "old primary" label if this is the old primary
+      if (replicaId === oldPrimaryId) {
+        labelGroup
+          .append("text")
+          .attr("transform", "translate(" + (label.x + relativeLabelXPos + 10) + " ," + (label.y + relativeLabelFont + 18) + ")")
+          .attr("font-size", Math.max(4, relativeLabelFont - 6))
+          .style("text-anchor", "middle")
+          .text("old primary")
+          .attr("fill", "#ff9800");
+      }
     });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
